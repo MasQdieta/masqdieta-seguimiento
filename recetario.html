@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recetario · MásQdieta</title>
+<style>
+  /* ── Variables (replica paleta de la app existente — light mode rosa) ── */
+  :root {
+    --rosa:        #E91E7A;
+    --rosa-suave:  #fce4f0;
+    --rosa-dark:   #c0165f;
+    --header-bg:   #1a1a2e;
+    --fondo:       #fce8f3;
+    --fondo-card:  #ffffff;
+    --fondo-input: #f8f0f6;
+    --texto:       #1a1a2e;
+    --texto-muted: #7a6070;
+    --borde:       rgba(233,30,122,0.2);
+    --radio:       12px;
+    --sombra:      0 4px 20px rgba(233,30,122,0.1);
+    --trans:       0.2s ease;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+    min-height: 100vh;
+    padding-bottom: 3rem;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--header-bg);
+    border-bottom: 1px solid var(--borde);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--rosa);
+    letter-spacing: -0.5px;
+    text-decoration: none;
+  }
+  .header-logo span { color: #ffffff; }
+  .header-sub {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
+    margin-left: auto;
+  }
+  .btn-volver {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.7);
+    padding: 0.35rem 0.85rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--trans);
+  }
+  .btn-volver:hover { border-color: var(--rosa); color: var(--rosa); }
+
+  /* ── Hero strip ── */
+  .hero {
+    background: linear-gradient(135deg, var(--rosa-dark) 0%, var(--rosa) 100%);
+    padding: 1.5rem 1.5rem 1.2rem;
+    text-align: center;
+  }
+  .hero h1 { font-size: 1.6rem; font-weight: 800; color: #fff; }
+  .hero p { font-size: 0.85rem; color: rgba(255,255,255,0.85); margin-top: 0.3rem; }
+
+  /* ── Filtros ── */
+  .filtros {
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid var(--borde);
+    box-shadow: 0 2px 8px rgba(233,30,122,0.06);
+  }
+  .filtros-label { font-size: 0.75rem; color: var(--texto-muted); width: 100%; }
+
+  .chip-grupo { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+  .chip {
+    padding: 0.3rem 0.9rem;
+    border-radius: 99px;
+    border: 1px solid var(--borde);
+    background: transparent;
+    color: var(--texto-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--trans);
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--rosa); color: var(--texto); }
+  .chip.activo { background: var(--rosa); border-color: var(--rosa); color: #fff; font-weight: 600; }
+
+  .sep { width: 1px; height: 28px; background: var(--borde); margin: 0 0.2rem; }
+
+  .filtro-pts {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--texto-muted);
+  }
+  .filtro-pts input[type=range] {
+    accent-color: var(--rosa);
+    width: 90px;
+    cursor: pointer;
+  }
+  .filtro-pts span { color: var(--rosa); font-weight: 700; min-width: 24px; }
+
+  .buscador {
+    margin-left: auto;
+    position: relative;
+  }
+  .buscador input {
+    background: var(--fondo-input);
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    color: var(--texto);
+    padding: 0.35rem 0.75rem 0.35rem 2rem;
+    font-size: 0.82rem;
+    width: 180px;
+    outline: none;
+    transition: var(--trans);
+  }
+  .buscador input::placeholder { color: var(--texto-muted); }
+  .buscador input:focus { border-color: var(--rosa); background: #fff; }
+  .buscador svg {
+    position: absolute;
+    left: 0.55rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 13px;
+    height: 13px;
+    stroke: var(--texto-muted);
+    fill: none;
+  }
+
+  /* ── Stats bar ── */
+  .stats {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.78rem;
+    color: var(--texto-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .stats strong { color: var(--rosa); }
+
+  /* ── Grid recetas ── */
+  .grid {
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  /* ── Card receta ── */
+  .card {
+    background: var(--fondo-card);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform var(--trans), box-shadow var(--trans), border-color var(--trans);
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sombra);
+    border-color: var(--rosa);
+  }
+  .card-top {
+    padding: 1rem 1rem 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .card-nombre {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--texto);
+    line-height: 1.3;
+    flex: 1;
+  }
+  .badge-pts {
+    background: var(--rosa);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.95rem;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .badge-cat {
+    display: inline-block;
+    margin: 0 1rem 0.75rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .cat-comida  { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+  .cat-cena    { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .cat-desayuno{ background: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+  .cat-tentempie{ background: #f3e5f5; color: #6a1b9a; border: 1px solid #ce93d8; }
+
+  .card-preview {
+    padding: 0 1rem 1rem;
+    font-size: 0.78rem;
+    color: var(--texto-muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── Modal detalle ── */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .overlay.abierto { display: flex; }
+
+  .modal {
+    background: #fff;
+    border: 1px solid var(--borde);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 40px rgba(233,30,122,0.15);
+    animation: slideUp 0.22s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .modal-header {
+    padding: 1.2rem 1.4rem 1rem;
+    border-bottom: 1px solid var(--borde);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 10;
+  }
+  .modal-titulo { font-size: 1.1rem; font-weight: 800; color: var(--texto); line-height: 1.3; flex: 1; }
+  .modal-pts-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; flex-shrink: 0; }
+  .modal-pts { font-size: 1.6rem; font-weight: 900; color: var(--rosa); line-height: 1; }
+  .modal-pts-label { font-size: 0.65rem; color: var(--texto-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .btn-cerrar {
+    background: transparent;
+    border: none;
+    color: var(--texto-muted);
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0 0 0.5rem;
+    transition: var(--trans);
+  }
+  .btn-cerrar:hover { color: var(--rosa); }
+
+  .modal-body { padding: 1.2rem 1.4rem; }
+
+  .seccion-titulo {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--rosa);
+    margin-bottom: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .seccion-titulo::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--borde);
+  }
+
+  .ingrediente-lista { list-style: none; margin-bottom: 1.4rem; }
+  .ingrediente-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid rgba(233,30,122,0.08);
+    font-size: 0.85rem;
+    gap: 0.5rem;
+  }
+  .ing-nombre { color: var(--texto); flex: 1; }
+  .ing-pts {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--rosa);
+    white-space: nowrap;
+  }
+  .ing-pts.cero { color: #bbb; font-weight: 400; }
+
+  .pasos-lista { list-style: none; }
+  .paso-item {
+    display: flex;
+    gap: 0.85rem;
+    margin-bottom: 0.9rem;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--texto);
+  }
+  .paso-num {
+    background: var(--rosa);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.72rem;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── Vacío / Cargando ── */
+  .estado {
+    padding: 3rem;
+    text-align: center;
+    color: var(--texto-muted);
+    grid-column: 1 / -1;
+    font-size: 0.9rem;
+  }
+  .estado svg { display: block; margin: 0 auto 1rem; stroke: var(--rosa); }
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--borde);
+    border-top-color: var(--rosa);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    .filtros { flex-direction: column; align-items: flex-start; }
+    .buscador { margin-left: 0; }
+    .buscador input { width: 100%; }
+    .grid { grid-template-columns: 1fr; padding: 0 1rem; }
+    .hero h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <a class="header-logo" href="index.html">Más<span>Q</span>dieta</a>
+  <a class="btn-volver" href="index.html">← Volver</a>
+  <span class="header-sub" id="headerFecha"></span>
+</header>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>📖 Recetario MásQdieta</h1>
+  <p>Todas las recetas del menú orientativo semanal · con ingredientes y puntos</p>
+</div>
+
+<!-- Filtros -->
+<div class="filtros">
+  <span class="filtros-label">Filtrar por:</span>
+
+  <div class="chip-grupo" id="chipsCat">
+    <button class="chip activo" data-cat="todas">Todas</button>
+    <button class="chip" data-cat="Comida">Comida</button>
+    <button class="chip" data-cat="Cena">Cena</button>
+    <button class="chip" data-cat="Desayuno">Desayuno</button>
+    <button class="chip" data-cat="Tentempié">Tentempié</button>
+  </div>
+
+  <div class="sep"></div>
+
+  <div class="filtro-pts">
+    <span>Máx. puntos:</span>
+    <input type="range" id="sliderPts" min="1" max="15" value="15" step="1">
+    <span id="valPts">15</span>
+  </div>
+
+  <div class="buscador">
+    <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="buscadorInput" placeholder="Buscar receta...">
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  Mostrando <strong id="numVisible">0</strong> recetas
+</div>
+
+<!-- Grid -->
+<div class="grid" id="grid">
+  <div class="estado">
+    <div class="spinner"></div>
+    Cargando recetas desde Google Sheets...
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay" onclick="cerrarModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-titulo" id="mTitulo"></div>
+        <div style="margin-top:0.5rem" id="mCatBadge"></div>
+      </div>
+      <div class="modal-pts-wrap">
+        <div class="modal-pts" id="mPts"></div>
+        <div class="modal-pts-label">puntos</div>
+      </div>
+      <button class="btn-cerrar" onclick="cerrarModalBtn()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="seccion-titulo">Ingredientes</div>
+      <ul class="ingrediente-lista" id="mIngredientes"></ul>
+      <div class="seccion-titulo">Preparación</div>
+      <ol class="pasos-lista" id="mPasos"></ol>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Configuración ────────────────────────────────────────────
+// IMPORTANTE: ajusta SHEET_ID si difiere del principal
+const SHEET_ID  = '1xQ-TwmFsXgH5gqn0s6mV4PkuArsP3loknM-m3hpDwr0';
+const SHEET_NAME = 'Recetario Master';
+
+// ── Estado ───────────────────────────────────────────────────
+let recetas = [];
+let catActiva = 'todas';
+let maxPts = 15;
+let textoBusqueda = '';
+
+// ── Fecha en header ──────────────────────────────────────────
+const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const hoy = new Date();
+document.getElementById('headerFecha').textContent =
+  dias[hoy.getDay()] + ', ' + hoy.getDate() + ' de ' + meses[hoy.getMonth()];
+
+// ── Carga desde gviz (igual que la app existente) ────────────
+async function cargarRecetas() {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+  try {
+    const resp = await fetch(url);
+    const text = await resp.text();
+    // gviz devuelve: google.visualization.Query.setResponse({...})
+    const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+    const rows = json.table.rows;
+
+    recetas = rows.slice(1).map(r => { // slice(1) omite cabecera
+      const cols = r.c;
+      const get = (i) => cols[i] && cols[i].v ? String(cols[i].v).trim() : '';
+      return {
+        nombre:       get(0),
+        categoria:    get(1),
+        puntos:       parseInt(get(2)) || 0,
+        ingredientes: get(3),
+        preparacion:  get(4)
+      };
+    }).filter(r => r.nombre); // eliminar filas vacías
+
+    renderGrid();
+  } catch (e) {
+    // Si falla la carga desde Sheets, usar datos embebidos de respaldo
+    recetas = RECETAS_RESPALDO;
+    renderGrid();
+    console.warn('Usando datos de respaldo (Sheets no disponible):', e);
+  }
+}
+
+// ── Render ───────────────────────────────────────────────────
+function renderGrid() {
+  const filtradas = recetas.filter(r => {
+    const catOk  = catActiva === 'todas' || r.categoria === catActiva;
+    const ptsOk  = r.puntos <= maxPts;
+    const busqOk = !textoBusqueda ||
+      r.nombre.toLowerCase().includes(textoBusqueda) ||
+      r.ingredientes.toLowerCase().includes(textoBusqueda);
+    return catOk && ptsOk && busqOk;
+  });
+
+  document.getElementById('numVisible').textContent = filtradas.length;
+  const grid = document.getElementById('grid');
+
+  if (filtradas.length === 0) {
+    grid.innerHTML = `<div class="estado">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        <path d="M8 11h6M11 8v6"/>
+      </svg>
+      No hay recetas con esos filtros. Prueba a aumentar los puntos máximos.
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtradas.map((r, i) => `
+    <div class="card" onclick="abrirModal(${recetas.indexOf(r)})" style="animation-delay:${i*0.04}s">
+      <div class="card-top">
+        <div class="card-nombre">${r.nombre}</div>
+        <div class="badge-pts">${r.puntos}</div>
+      </div>
+      <div>
+        <span class="badge-cat cat-${catClass(r.categoria)}">${r.categoria}</span>
+      </div>
+      <div class="card-preview">${primerIngrediente(r.ingredientes)}</div>
+    </div>
+  `).join('');
+}
+
+function catClass(cat) {
+  return { 'Comida':'comida','Cena':'cena','Desayuno':'desayuno','Tentempié':'tentempie' }[cat] || 'comida';
+}
+
+function primerIngrediente(ing) {
+  // Muestra los primeros 2 ingredientes como preview
+  const items = ing.split('|').map(s => s.trim()).filter(Boolean);
+  return items.slice(0, 2).join(' · ');
+}
+
+// ── Modal ────────────────────────────────────────────────────
+function abrirModal(idx) {
+  const r = recetas[idx];
+  document.getElementById('mTitulo').textContent = r.nombre;
+  document.getElementById('mPts').textContent = r.puntos;
+  document.getElementById('mCatBadge').innerHTML =
+    `<span class="badge-cat cat-${catClass(r.categoria)}">${r.categoria}</span>`;
+
+  // Ingredientes: separados por |
+  const ings = r.ingredientes.split('|').map(s => s.trim()).filter(Boolean);
+  document.getElementById('mIngredientes').innerHTML = ings.map(ing => {
+    // Detectar si tiene puntos entre paréntesis: ej. "Patatas 300g (6p)"
+    const match = ing.match(/\((\d+)p\)$/);
+    const pts = match ? parseInt(match[1]) : null;
+    const nombre = ing.replace(/\(\d+p\)$/, '').trim();
+    return `<li class="ingrediente-item">
+      <span class="ing-nombre">${nombre}</span>
+      <span class="ing-pts ${pts === 0 ? 'cero' : ''}">${pts !== null ? pts + 'p' : '—'}</span>
+    </li>`;
+  }).join('');
+
+  // Pasos: separados por |
+  const pasos = r.preparacion.split('|').map(s => s.trim().replace(/^\d+\.\s*/, '')).filter(Boolean);
+  document.getElementById('mPasos').innerHTML = pasos.map((p, i) =>
+    `<li class="paso-item">
+      <div class="paso-num">${i+1}</div>
+      <div>${p}</div>
+    </li>`
+  ).join('');
+
+  document.getElementById('overlay').classList.add('abierto');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModal(e) {
+  if (e.target === document.getElementById('overlay')) cerrarModalBtn();
+}
+function cerrarModalBtn() {
+  document.getElementById('overlay').classList.remove('abierto');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModalBtn(); });
+
+// ── Filtros ──────────────────────────────────────────────────
+document.getElementById('chipsCat').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('#chipsCat .chip').forEach(c => c.classList.remove('activo'));
+  chip.classList.add('activo');
+  catActiva = chip.dataset.cat;
+  renderGrid();
+});
+
+const slider = document.getElementById('sliderPts');
+const valPts = document.getElementById('valPts');
+slider.addEventListener('input', () => {
+  maxPts = parseInt(slider.value);
+  valPts.textContent = maxPts;
+  renderGrid();
+});
+
+document.getElementById('buscadorInput').addEventListener('input', e => {
+  textoBusqueda = e.target.value.toLowerCase().trim();
+  renderGrid();
+});
+
+// ── Datos de respaldo (si Sheets no carga) ───────────────────
+// Son los mismos 13 datos del Apps Script, formato idéntico
+const RECETAS_RESPALDO = [
+  { nombre:"Espaguetis con salsa boloñesa", categoria:"Comida", puntos:11,
+    ingredientes:"Espaguetis 70g (7p)|Carne picada ternera magra 100g (2p)|Aceite 1 cta (1p)|Queso parmesano 10g (1p)|Tomate natural triturado 100g (0p)|Cebolla ½ ud (0p)|Ajo ½ diente (0p)|Sal, pimienta, orégano, vinagre (0p)",
+    preparacion:"Hervir 70g de espaguetis según el paquete.|En sartén con 1 cta de aceite sofreír cebolla, ajo y carne picada.|Añadir tomate triturado, sal, pimienta, orégano y 1 cta de vinagre. Cocinar a fuego lento.|Mezclar con la pasta y terminar con 10g de parmesano.|Acompañar con verdura." },
+  { nombre:"Revuelto de guisantes", categoria:"Cena", puntos:8,
+    ingredientes:"Aceite 1 cta (1p)|Guisantes en conserva 200g (4p)|Huevo mediano 1 ud (2p)|Queso fresco 0% MG 100g (1p)|Champiñones 200g (0p)|Cebolla 1 ud (0p)|Ajo 1 diente (0p)",
+    preparacion:"Con 1 cta de aceite sofreír ajo y cebolla picada.|Añadir champiñones y 200g de guisantes en conserva.|Mezclar con 1 huevo mediano y cocinar removiendo.|Acompañar con 100g de queso fresco 0% MG." },
+  { nombre:"Bacalao con patatas", categoria:"Comida", puntos:9,
+    ingredientes:"Aceite 1 cta (1p)|Bacalao fresco 200g (2p)|Patatas 300g (6p)|Cebolla ½ ud (0p)|Ajo ½ diente (0p)|Tomate ½ ud (0p)|Pimiento verde ½ ud (0p)|Agua 150ml, sal, pimentón, laurel, perejil (0p)",
+    preparacion:"En olla sofreír con 1 cta de aceite la cebolla, ajo, tomate y pimiento verde muy picados.|Añadir 200g de bacalao fresco en trozos y 300g de patatas.|Incorporar 150ml de agua, sal, pimienta, pimentón, laurel y perejil.|Cocinar hasta que esté guisado." },
+  { nombre:"Filete de pavo con salsa de setas", categoria:"Cena", puntos:8,
+    ingredientes:"Aceite 1 cta (1p)|Filetes de pavo 200g (2p)|Harina 1 cda (1p)|Yogur cremoso desnatado 1 cda (1p)|Cuscús seco 30g (3p)|Cebolla 1 ud (0p)|Champiñones 100g (0p)|Caldo vegetal 100ml (0p)",
+    preparacion:"Calentar 1 cta de aceite y dorar 200g de filetes de pavo.|En la misma sartén dorar cebolla y champiñones 5 min.|Espolvorear con 1 cda de harina, añadir 100ml de caldo vegetal y hervir 5 min.|Agregar yogur desnatado, sal, pimienta y hierbas.|Hervir 30g de cuscús seco y servir de acompañamiento." },
+  { nombre:"Garbanzos con espinacas", categoria:"Comida", puntos:10,
+    ingredientes:"Patata 90g (2p)|Garbanzos hervidos 150g (4p)|Huevo duro 1 ud (2p)|Aceite 2 ctas (2p)|Espinacas 100g (0p)|Caldo vegetal 200ml (0p)|Lechuga, tomate, pepino, zanahoria (0p)",
+    preparacion:"Hervir 90g de patata en 200ml de caldo vegetal.|Añadir 150g de garbanzos, 100g de espinacas y 1 huevo duro.|Rociar con 1 cta de aceite.|Acompañar con ensalada aliñada con sal, orégano y 1 cta de aceite." },
+  { nombre:"Ternera y ensalada con vinagreta a la miel", categoria:"Cena", puntos:9,
+    ingredientes:"Ternera sin grasa 200g (2p)|Aceite 1 cta (1p)|Pan blanco de barra 50g (4p)|Aceite vinagreta 1 cta (1p)|Miel 1 cta (1p)|Pepino, tomate cherry, naranja, uva, cebolla, canónigos (0p)",
+    preparacion:"Dorar 200g de ternera sin grasa en 1 cta de aceite.|Preparar vinagreta con aceite, zumo limón, miel, mostaza, caldo vegetal, sal y pimienta.|Montar ensalada y aliñar con la vinagreta.|Servir con 50g de pan blanco de barra." },
+  { nombre:"Mero con salsa de mejillones", categoria:"Comida", puntos:10,
+    ingredientes:"Aceite 1 cta (1p)|Mejillones 250g (1p)|Vino blanco 1 cda (1p)|Mero 140g (3p)|Pan blanco de barra 60g (4p)|Tomate, pimiento rojo, ajo, albahaca (0p)",
+    preparacion:"Sofreír en 1 cta de aceite tomate, pimiento y ajo picados.|Agregar 250g de mejillones, 1 cda de vino blanco y albahaca. Triturar todo.|En esa salsa cocinar 140g de mero.|Acompañar con 60g de pan blanco." },
+  { nombre:"Pavo a la parrilla con patatas", categoria:"Cena", puntos:7,
+    ingredientes:"Patata 180g (4p)|Aceite 1 cta (1p)|Pavo 150g (2p)|Tomate, cebolla, pimiento verde, hierbas, sal (0p)",
+    preparacion:"Saltear en microondas 180g de patata con 1 cta de aceite, tomate, cebolla y pimiento.|Cocinar 150g de pavo a la parrilla.|Servir juntos." },
+  { nombre:"Ensalada de lentejas con salmón", categoria:"Comida", puntos:11,
+    ingredientes:"Lentejas hervidas 240g (5p)|Salmón ahumado 50g (2p)|Maíz en conserva 4 cdas (3p)|Aceite 1 cta (1p)|Tomate, cebolla, pimiento rojo, zumo limón, sal (0p)",
+    preparacion:"Picar finamente tomate, cebolla y pimiento rojo.|Mezclar con lentejas, salmón ahumado y maíz.|Aliñar con 1 cta de aceite, zumo de limón y sal." },
+  { nombre:"Pollo con manzana", categoria:"Cena", puntos:9,
+    ingredientes:"Pechuga de pollo sin piel 150g (3p)|Aceite 1 cta (1p)|Patatas hervidas 250g (5p)|Manzana 1 ud (0p)|Zumo naranja, canela, romero, zanahoria (0p)",
+    preparacion:"Saltear en 1 cta de aceite la pechuga y la manzana en gajos.|Añadir zumo de naranja, canela y romero.|Servir con 250g de patatas hervidas y zanahoria rallada." },
+  { nombre:"Bocadillo de tortilla de calabacín", categoria:"Cena", puntos:10,
+    ingredientes:"Huevo 1 ud (2p)|Quesitos light 2 uds (2p)|Aceite 1 cta (1p)|Pan integral 5 cereales 70g (5p)|Calabacín 100g, ajo, sal, pimienta (0p)",
+    preparacion:"Hacer tortilla con calabacín, huevo, quesitos light, aceite, sal y pimienta.|Montar bocadillo con 70g de pan integral 5 cereales." },
+  { nombre:"Cerdo con verduritas y patatas", categoria:"Comida", puntos:11,
+    ingredientes:"Carne cerdo magra 180g (5p)|Aceite 2 ctas (2p)|Patata 175g (4p)|Pimiento verde, tomate cherry, cebollitas, especias para marinada (0p)",
+    preparacion:"Hacer marinada y macerar 180g de cerdo en tacos durante un día.|Montar brochetas con la carne y verduritas. Pasar por la plancha con 1 cta de aceite.|Cocinar 175g de patata en microondas con 1 cta de aceite." },
+  { nombre:"Arroz 3 delicias", categoria:"Cena", puntos:10,
+    ingredientes:"Arroz blanco hervido 150g (5p)|Guisantes hervidos 80g (1p)|Jamón cocido sin grasa 40g (1p)|Huevo batido 1 ud (2p)|Aceite 1 cta (1p)|Calabacín, zanahoria, ajo, salsa de soja (0p)",
+    preparacion:"Saltear en 1 cta de aceite el ajo, calabacín y zanahoria picados.|Añadir arroz hervido, guisantes y jamón cocido.|Incorporar huevo batido y remover hasta cuajar.|Aliñar con 2 cdas de salsa de soja." }
+];
+
+// ── Iniciar ──────────────────────────────────────────────────
+cargarRecetas();
+</script>
+</body>
+</html>
