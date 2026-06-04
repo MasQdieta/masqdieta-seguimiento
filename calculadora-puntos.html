@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MásQdieta — Calculadora de Puntos</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#E8477A;--pink-dark:#C03060;--pink-light:#FBE8EF;
+  --navy:#0D2B3E;--navy-light:#1A3C5A;
+  --bg:#FDF5F7;--card:#fff;
+  --text:#0D2B3E;--text2:#5A3045;--text3:#A07090;
+  --green:#27AE60;--green-light:#E8F5E9;
+  --amber:#E67E22;--amber-light:#FEF9E7;
+  --red:#E74C3C;--red-light:#FDEDEC;
+  --border:#EDD0DA;--radius:16px;--radius-sm:10px;
+  --shadow:0 4px 24px rgba(232,71,122,0.10);
+  --input-bg:#fff;--label:#5A3045;--toggle-bg:#EDD0DA;
+}
+[data-theme="dark"]{
+  --bg:#160A0F;--card:#220F18;--input-bg:#2A1020;
+  --text:#F0D8E4;--text2:#C090A8;--text3:#805060;
+  --border:#3A1828;--pink-light:#2A0F1A;--label:#C090A8;
+  --shadow:0 4px 24px rgba(0,0,0,0.4);--toggle-bg:#3A1828;
+  --green-light:#1A3A20;--amber-light:#3A2A10;--red-light:#3A1010;
+}
+html,body{min-height:100%;font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;transition:background .25s,color .25s}
+
+/* TOPBAR */
+.topbar{background:var(--navy);padding:14px 16px;display:flex;align-items:center;position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,.05)}
+.topbar-back{color:rgba(255,255,255,.6);text-decoration:none;font-size:13px;display:flex;align-items:center;gap:6px;transition:.15s;flex-shrink:0;min-width:70px}
+.topbar-back:hover{color:#fff}
+.topbar-back svg{width:16px;height:16px}
+.topbar-logo{display:flex;align-items:center;gap:10px;flex:1;justify-content:center}
+.topbar-logo img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--pink);flex-shrink:0}
+.topbar-center-name{font-family:"Playfair Display",serif;color:var(--pink);font-size:20px;font-weight:700}
+.topbar-center-sub{font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.05em}
+.toggle{position:relative;width:34px;height:19px;cursor:pointer;flex-shrink:0;min-width:34px}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.t-track{position:absolute;inset:0;background:var(--toggle-bg);border-radius:20px;transition:.25s}
+.toggle input:checked~.t-track{background:var(--pink)}
+.t-thumb{position:absolute;top:2.5px;left:2.5px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.toggle input:checked~.t-thumb{left:17.5px}
+
+/* CONTENIDO */
+.content{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+
+/* INTRO */
+.intro{text-align:center;padding:16px 0 10px}
+.intro-title{font-family:"Playfair Display",serif;font-size:26px;color:var(--text);margin-bottom:5px}
+.intro-sub{font-size:13px;color:var(--text3)}
+.formula-pill{display:inline-flex;align-items:center;gap:5px;background:var(--pink-light);color:var(--pink-dark);font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;margin-top:8px}
+
+/* TABS */
+.tabs{display:flex;gap:0;margin-bottom:16px;background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px;box-shadow:var(--shadow)}
+.tab{flex:1;padding:9px 6px;border-radius:var(--radius-sm);font-size:12px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text3);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit}
+.tab svg{width:15px;height:15px;flex-shrink:0}
+.tab.active{background:linear-gradient(135deg,var(--pink),var(--pink-dark));color:#fff;box-shadow:0 3px 10px rgba(232,71,122,.35)}
+.panel{display:none}.panel.active{display:block}
+
+/* SECTIONS */
+.section{background:var(--card);border-radius:var(--radius);border:1.5px solid var(--border);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.section-head{background:var(--navy);padding:11px 16px;display:flex;align-items:center;gap:9px}
+.section-head-icon{font-size:16px}
+.section-head-title{font-size:12px;font-weight:600;color:#fff;letter-spacing:.04em;text-transform:uppercase}
+.section-body{padding:16px}
+
+/* FIELDS */
+.field{margin-bottom:13px}.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--label);margin-bottom:5px;letter-spacing:.04em;text-transform:uppercase}
+.field input,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;background:var(--input-bg);color:var(--text);transition:.2s;appearance:none;-webkit-appearance:none}
+.field input:focus,.field select:focus{outline:none;border-color:var(--pink);box-shadow:0 0 0 3px rgba(232,71,122,.13)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A07090' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;padding-right:36px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* IDENTIFICACIÓN CLIENTA */
+.id-bar{background:var(--pink-light);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.id-bar svg{width:18px;height:18px;color:var(--pink);flex-shrink:0}
+.id-bar-text{flex:1;font-size:13px;color:var(--text2)}
+.id-bar-name{font-weight:700;color:var(--pink)}
+.id-bar-change{font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline;white-space:nowrap}
+.id-bar-change:hover{color:var(--pink)}
+
+/* RESULTADO — DOS BLOQUES */
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.result-block{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;box-shadow:var(--shadow)}
+.result-block.primary{background:var(--pink-light);border-color:var(--pink)}
+.result-block-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);margin-bottom:6px}
+.result-block.primary .result-block-label{color:var(--pink-dark)}
+.result-num{font-family:"Playfair Display",serif;font-size:42px;color:var(--text);line-height:1}
+.result-block.primary .result-num{color:var(--pink)}
+.result-unit{font-size:11px;color:var(--text3);margin-top:3px}
+.result-block.primary .result-unit{color:var(--pink-dark);opacity:.8}
+.badge-row{display:flex;justify-content:center;margin-top:8px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-green{background:var(--green-light);color:var(--green)}
+.badge-amber{background:var(--amber-light);color:var(--amber)}
+.badge-red{background:var(--red-light);color:var(--red)}
+
+/* BUTTONS */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;font-size:13px;font-weight:600;font-family:inherit;border:1.5px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:transparent;color:var(--text);transition:all .15s}
+.btn:hover{border-color:var(--pink);color:var(--pink)}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn svg{width:15px;height:15px;flex-shrink:0}
+.btn-primary{background:linear-gradient(135deg,var(--pink),var(--pink-dark));border-color:transparent;color:#fff;box-shadow:0 3px 12px rgba(232,71,122,.3)}
+.btn-primary:hover{opacity:.9;color:#fff;border-color:transparent}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* HISTORIAL */
+.hist-item{padding:11px 0;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.hist-item:last-child{border-bottom:none}
+.hist-alimento{font-weight:600;font-size:14px;color:var(--text)}
+.hist-meta{font-size:12px;color:var(--text3);margin-top:2px}
+.hist-puntos{text-align:right}
+.hist-pts-big{font-family:"Playfair Display",serif;font-size:22px;color:var(--pink);line-height:1}
+.hist-pts-sub{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+.hist-empty{text-align:center;padding:24px 0;color:var(--text3);font-size:14px}
+.hist-filter{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.hist-filter input{flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--input-bg);color:var(--text)}
+.hist-filter input:focus{outline:none;border-color:var(--pink)}
+
+/* UPLOAD */
+.upload-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:2rem 1.25rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.upload-zone:hover{border-color:var(--pink);background:var(--pink-light)}
+.upload-zone input{display:none}
+.upload-icon{width:54px;height:54px;background:var(--pink-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.upload-icon svg{width:26px;height:26px;color:var(--pink)}
+.upload-zone h3{font-size:15px;font-weight:600;margin-bottom:5px;color:var(--text)}
+.upload-zone p{font-size:13px;color:var(--text3);line-height:1.5}
+.preview-img{width:100%;max-height:260px;object-fit:contain;border-radius:var(--radius-sm);border:1.5px solid var(--border);display:block;margin-bottom:12px}
+
+/* LOADING */
+.loading-bar{height:3px;background:var(--pink-light);border-radius:2px;overflow:hidden;margin-bottom:12px}
+.loading-bar-inner{height:100%;background:linear-gradient(90deg,var(--pink),var(--pink-dark));animation:loading 1.5s ease-in-out infinite}
+@keyframes loading{0%{width:0%;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0%;margin-left:100%}}
+.loading-text{font-size:14px;color:var(--text3);display:flex;align-items:center;gap:8px}
+.loading-text svg{width:18px;height:18px;color:var(--pink);animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* INFO ROWS */
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:14px}
+.info-row:last-child{border-bottom:none}
+.info-row span:first-child{color:var(--text3);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.info-row span:last-child{font-weight:600;color:var(--text)}
+.ai-note{border-left:3px solid var(--pink);padding:10px 14px;background:var(--pink-light);border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:13px;color:var(--text2);line-height:1.6;margin-top:12px}
+.error-box{background:var(--red-light);color:var(--red);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;border:1px solid rgba(231,76,60,.2)}
+
+/* MODAL IDENTIFICACIÓN */
+.modal-overlay{position:fixed;inset:0;background:rgba(13,43,62,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--card);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-icon{font-size:44px;text-align:center;margin-bottom:12px}
+.modal-title{font-family:"Playfair Display",serif;font-size:22px;color:var(--text);margin-bottom:6px;text-align:center}
+.modal-sub{font-size:13px;color:var(--text3);margin-bottom:20px;text-align:center;line-height:1.5}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--navy-light);color:#fff;padding:11px 22px;border-radius:28px;font-size:13px;font-weight:600;z-index:999;transition:.28s;opacity:0;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.success{background:linear-gradient(135deg,#1B5E20,#27AE60)}
+.toast.error{background:linear-gradient(135deg,#B71C1C,#E53935)}
+
+/* SPINNER inline */
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+
+@media(max-width:480px){
+  .row2{grid-template-columns:1fr}
+  .result-grid{grid-template-columns:1fr 1fr}
+  .content{padding:14px 12px 48px}
+  .result-num{font-size:34px}
+}
+</style>
+</head>
+<body>
+
+<!-- MODAL IDENTIFICACIÓN -->
+<div class="modal-overlay" id="modal-id">
+  <div class="modal">
+    <div class="modal-icon">👤</div>
+    <div class="modal-title">Identificación</div>
+    <div class="modal-sub">Introduce tu nombre o código de clienta para guardar tus cálculos</div>
+    <div class="field">
+      <label>Tu nombre o código</label>
+      <input type="text" id="input-clienta" placeholder="Ej: María o CLI001" autocomplete="off" onkeydown="if(event.key==='Enter')confirmarClienta()">
+    </div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn btn-primary" style="flex:1" onclick="confirmarClienta()">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+        Continuar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="index.html" class="topbar-back">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Volver
+  </a>
+  <div class="topbar-logo">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAEsASwDASIAAhEBAxEB/8QAHAABAAMAAwEBAAAAAAAAAAAAAAUGBwIDBAgB/8QARhAAAQMDAQMIBgYJAgYDAAAAAAECAwQFEQYSITEHE0FRYXGBsRQiMjZ0kSNCcqGywRUzNFJic6LR8BbCJENTY5LhNUSC/8QAGwEBAAMBAQEBAAAAAAAAAAAAAAECBQYDBAf/xAA5EQACAQMBBAcFBwMFAAAAAAAAAQIDBBEFEiExcRMyQVFhsdEGNIGRwRQiM6Hh8PEjQlIVFkNTcv/aAAwDAQACEQMRAD8A38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEfdb3b7LT89XVLYkX2WcXP7k4qZ3eeUqtqVdFaoUpYuHOyIjpF8OCfeQ3g+210+vc74Ld3vgabVVlNRRLLVVEUEafWkejU+8rNdyi2Kky2B81W5P+izDfm7BklVV1NbMs1VPJPIv1pHK5fvOkrtG/Q0ClHfVk3y3I0Gq5U6ly/wDCWyJidc0iu+5ETzIublH1BIvqPpYk6mw581UqQIyzRhplpDhTXx3+ZZV19qRf/vtTugZ/Y5M5QdRtXfVxP+1A38sFYAyz0+w23/XH5IusHKdeI8JNTUcydjXMXzUmqPlSo3qiVtvnh63ROR6fJcKZgCcs8Kmk2c/7Mctxutu1VZLoqNprhFzi/wDLkXYd8l4+BMnzjxJu06svNmVraerdJCn/ACZvXZ4Z3p4KTtGVcez/AG0JfB+v6G5gptj5Q7bcVbDXJ6DULuy9cxuXsd0eJcUVHIioqKi70VC2TBr21WhLZqxwz9AAPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHGSRkUbpJHNYxqKrnOXCInWoByVcJvKHqflCio1fR2dWTTpudULvYxez95fu7yC1friS6ufQW17o6FNz5E3Om/s3zKUVcjp9O0VYVW5Xw9fT5ndVVdRW1D6iqmfNM/2nvXKqdIBU6RJJYQAAJAAAAAAAAAAAABYtPaxuNgc2NHLUUWd9O9eCfwr9XyK6AeVWjTrR2KiyjfLLfaG/UfpFFLnG58btz2L1Kn+ISR89265VdqrWVdFMsUzelODk6lTpQ2TS+qaXUdJuRIqyNPpYM/1N608i6eTkNS0qVt/Up74eXP1LAACTHAAAAAAAAAAAAAAAABwfNFG5GvkY1V4IrkTICWTmAAAAAAq4QybXGr1usz7bQSYoY1xI9q/rnJ/tT7/kTvKFqZaOD9D0cmJ5m5ne1d7GL9XvXy7zLSsn2HT6LpywrmquXr6fMAAqdKAAAAAAAAAAAAAAAAAAAAAD0UVbUW6siq6SVYp4ly1yeS9adh5wCGlJYfA3PTOo4NRW1JmIjKiPDZ4s+yvWnYvQTZgdivNRYbrHWwZVE9WSPO6RnSn9u03ShrYLjQw1lM/bhmajmr/nSXTycTqun/AGWptQ6j4eHgegAEmUAFXCZU4te17UcxyOavBUXKAHIHFr2vzsuR2FwuFzhQj2K9WI5Fc3iiLvQDByAAAAOmsqY6KinqpV+jhjdI7uRMglJt4RSdcayltsi2u2v2anGZpk4xovBE/i7egy+WSSeRZJnukkcuVc9Vcq+KnZVVMlbVzVUy5lmesjl7VXJ0nm3k7+ys4WtNRit/a+8sumdYVtiqWRzSST0Crh8TlyrE629S9nBTZYJ46mCOeF6PikajmOTgqLwU+dTV+TO5OqrJNQvdl1JJ6uf3Hb0+/aLRZka5ZQ2PtEFhrj6l3I+93WGy2ior5t6Rt9Vufbcu5E8VJAyvlKvK1NzitUTvoqZNuXHTIqbk8E8yW8GHp9r9prqm+HF8il1dVNXVctVUP25pXK97utVOkAod8kksIAAEgAAAAAAAAAAAAAAAAAAAAAAAAvnJvf1pqx1nqH/RTqr4M/Vf0p4p96dpQznFLJBMyaJ6skjcjmOToVFyihHzXdvG5oulLt8z6LBHWO6MvNmpa9mEWVnrNT6rk3OT55JE9D8+nBwk4y4orWvZXxaOrVY9Wq5WNVUXGUV6ZQqmiKmaLSOotiRzeajV8eF9lVY7enVwQtHKD7nVX24/xoVHRvujqj+T/scVfE3rOKenSz/mvOJ+8l0j0vlZEjl2HU20rc7lVHJhe/ep4NF1MzteQyOkcr5nypIqr7e5y7/FEPbyX+8NV8Iv42kZor34ovtyfhcR3GlWS6S5/wDK8mbUAC5xoK9rmRYtG3FW8XMa3wVyIpYSE1fSOrdJ3KFiZckKvRO1qo78gz6LRpXEG+GV5mGAA8z9DBeuS6RUvVbFn1XU6OXvRyf3KKX/AJLKZzrhcKvHqsibFntVc/khK4mfqrSs55/e9Gk1lVHRUU9VKuI4WOkd3ImT59q6qSurJ6uZcyTPWR3eq5Nb5Ra70TSz4Wrh1VI2Lw9pfuT7zHhI+DQKGzSlVfa8fBAAEHQAAAAAAAAAAAAAAAAAAAAAAHN8MsTUdJFIxF4K5ioi/M4AhPIAAJAAANG5L7mu1WWt7t36+JPud/tU0gwrSdd+jtUUE6rhjpUif9l3q/mi+BupePA4zXKHR3O2uEln4lX5Qfc6q+3H+NCkaVr6Ol0vqKCoqYopZosRMe5EV67Dk3J0l618xXaNrcJnZWNV/wDNDFir4mjpFFV7Jwb/ALvLDLfyd19Jb75Uy1lTFTxuplajpXo1FXabu3nk0Tv1vRKnDbkX+lxWyyaCYr9ZUOE9lJHL3bCkI0rqioU61XPWj5Jm1AA9Dgwfjmo5qtciKi7lRek/QAYnqzS9RYK+R7I3Ot8jsxSomUbn6rupU+8rp9GSRslY5kjGvY5MK1yZRUMW15R01BqaaGkgjgi5ljtiNuEyqLlcFGsHYaVqcrl9DUX3kuPeQdHR1FfVMpqSF80z1wjGJv8A/SdptulrE3T9ljpVVHTuXnJnpwV69XYm5PA9Nmt9HQW+FKSlhh2o2q5Y2IiuXHSvSSJZLBj6lqkrr+nFYivzMy5U6pXVlupEXcyN8q+KoieSmfcC5a9a+t1osCLhI6duVxnZaiOe5fBMlVWrRu6mY2JnQuEc9e9f7YQq+J0emR2LWnFd2fnvPNlOtPmMp1p8z0emVH/Wd9xp2g/Q7laXwVVJTzVFOrVc98TVcrXptJlcd6EJZPS8u3a0+kccrn+hlWUXgoyicVT5mjcpNkhhgoa2jpo4/XWB7YmI3KrvbuTtRU8Szac09b6TT9HHJS088jo0e+R8SOVznb13qnDfgnB8k9Ypxt419nrPGORieUXgqKCx66dEmq6mCCOOOKFrGNYxqNRF2UVeHap1WS1VcNfT1tVaK2enYu3HG2JU556Jlrd/RuyvHchB98blOiqr3ZWcELNBNTvRk8MkTlTKNkarVx17zrJjUF3uF+urpqyDmpImK1IUYqc21N65zv7cqR8FBWVUT5YKaWSKP25Gt9VvevBAekJvYUqmE+Z5weiehq6VjH1FNNEx+9r3MVGu7l4KWfR2jf08i1ta57KFjtlrW7nSqnHf0InWMFK1zSo03Vm9xUMoi4ygRc8N5adXV8FJdJLVaIIqSlpV2HrE1EdI/py7iuOHHrJrTtpodY6albVxsjuNM9Y0qo2o1ypjLVdj2upc9QweE75U6Ma844i/ms8G0Z4DurKWWhrJ6SduzLC9WPTtT8j1UdmuVUkc0VDULAr2pz3Nqjd6onFdwPsdSCjtN7iPyi9KHrYksLmxUzHrUY2nujaqubnoTHDtU3CpsFmngc2e2UjmY3rzLUX5ohXdBTwRWiZ76SeKWad8vOcw5Ukaq+rhyJvRE3YJ2TE/1qNSlKpGD3Y3c/4I5dW2ip0MtDcZHyV6U6wuhkY5XLIiYR2V7cLnJm5Z9e1cdXqd7o6eSDYia1yyM2HPXf62F39ON/UQ0NlulRG2SK3VTmPXDXc2qI5epM8Qz7bGnTo0uk6u3vw3w5HhB6FoKxK1tGtLMlU5dlIXMVHKvcpdLXydSspX1t6kWNrGK/0aJfWXCZ9Z3R3J8yMHvXvKNCKc5ceHiUMHJWPa9GOYqPXHq435Pf8AoG8K1Hfourw5quT6JcqicVROPSnzB7ynGPWeCORysVHNXDm7070PoeiqEq6CnqE4SxNf80RT575t/r+o76P293s78b+repuGkJVn0jbHquVSBG/Ld+RMTA9oYJ04T7nj5/wSdbRw3ChnpKhu1FMxWOTsUxO/6XuNgqHJPE6Smz6lSxMtcnRnqXsU3QjNRtR2mrmioip6LJx+ypZrJkaZf1LapsrepNZRhEME1TM2GCJ8srlw1jGq5V8ENW0LpKWysfX17UbWSt2Wx5zzTOK57V3d2Cucl6Z1DVfCL+Npq5EV2mlrd/UUnbR3Lt8QACxzQAAAMb5R/eyb4ePyU2QxvlH97Jvh4/JSsjb0H3p8n5o1yh/YKf8AlN8kPQeeh/YKf+U3yQ9BYxp9ZmW3e6w2jlTkrKliuga1rHoiZVGujRM46eJ4dcXCw18lItnZEsrUdzskUWwipuwi7kyp36ooGV/KYyklcrY6l0KOVOONnC4+R264ptM0tup47UlKlYkiJindtephc7WF68cd5Q62h0Snby37TiuHDGO38yirwXHEu2hK/wBE1jLSqvqVEawp9piZTyX5lOpmI+pjR3so7ad3JvX7kO2irn0d1gr2+3FMkuPHKp5kI07qj01KVPvT/TyNb19XRUunFhVqOqKmRscCL9V2c7Xh54LJTQpT0sUDeEbGsTwTBk2pr9T3bWdI5ZkW3UksbUem9FTaRXu/LwNIn1NZKem5991pNjGU2ZUcq+Cby6ZydzaVKdvSgott5b+OML5Fd0vaKe5ahvF9qGNlVta+KnRyZRuzuV3fwRPEmK5zp9bWmBPZp6aeoXvXDE81K1oDUlDTU1Tb62pjhkWd00cki7LXo7jvXguU6esnUvti/wBXK/8ASUCyrSc1tbac2mH5xtcMrnh2ELgel1TrK5mnFtKLS3dmMfvxOGuqeiZY5qqSJjaiTYpufx6yMc9u0me5FJ19poJrOtsWBnoTo9jm27k2f835KnrS9WauZb6B1wgli9MjfUJG7axGmUXem5OJ5bDqGps1wjtdRWU1dac4hrEnbmJnRtb+jhhd/VknO8qrWtK1i4tppt4e7u4eKxw8dxD6ps9fpq2Pt7JXVFpqJmyQudxiemfVXo3p88GjaZijh0xbGRY2PRmLu61TK/eqlG17qugulHHbbe9J0SRJJJkT1UxnCJ18eJx0drmC10TbbdNtII/1MzW7Wyn7rk446lQjdk+y4t7m4sYycfvZy12vszjv/kpNbM6or6mdy5dJM96r3uVTRuStF9Cua9CysT+lSsufp6m0zXQu5qruks7+Ylja5dhmfVXK4xuyuO0mLBeItK6IfUvwtbWyvfTRL0oiI1HL/CmFXtIXE++/cq9q6UIvLaSz29ueR76SzUl85R7tUzMbJTUasyxUyjpNlE39aJhSwalXbmslE1N01wjVyJ+6xFf5tQo2gNRU9uudZHcZ0YlZh/PSLu20VeK9Gdpd5cbnfbF+nbS+S5wK+J8ipsPRzG7TFTLnJuTqTvJXAyrulWhcqDTajHd8I+pMX2oSksFwqFXHN08jk79lcHm0pTeiaUtkKphUp2uXvVM/mQ+tr9a36ZrKOG4076idiNYyN+2qplM8M43Z4ktTaisUFrhel1pEhZG1EzKmcIn7vHPYT2nwdBVVqlsvfLufYt3myKtdnprrq+8XiqjbKlPOlPAxyZRFaxuXY6+rxJC9sfPf7MxzkZS075KqZ7lw1FRuy1Mr05cvyUqWltZUlBdblBXS4paqqfPFOjVwiqvSnFEVMbz0a9gob5BSVlFdbc50COa5j6lqbTVwuU7d3DtI7D75W9VXcYVcqOMJ4yl93H78SRuNfbL1rWx09HJHUTUskkksse9ERGrhuenfhewmtW1C0uk7nInHmHMT/wDXq/mZnoisoLVqhslZUxtjWFzGy70Yjlx0r0YRd5c9cXW31em5aWnulEskj2KreeRVVqORVwiZ6hncTcWjp3VGlFNxWN/xbZ5+TmwU8Nrbd5Y2vqJ1ckSqmebYi43dSqqLv7ibhctRrypX6lJQMYnY6R6qv3NQhtCaltzbFFbqmrignplcic65Go9qqqoqKvfwJG3X2xf6iujmXODblSLLnvRrF2UVMNcu5cfmSjxu415XFaU4t7njd2ZX0IrlKhpaa1NljhYypq52MkkRMK9rEc5M+OCa0IudGW/sR6f1uKhyj3ihuTqGCirIp1hc9ZEjXaRFXGN/DoUuWh2bGjbanWxzvm5VIXEvcwlDTKe3xcu3k/oWAjNRe7dz+Fk/CpJkZqL3aufwsn4VLGRQ/FjzRnfJf7w1Xwi/jaauZRyX+8NV8Iv42mrkR4Glrnvb5IAAkyAAAAY3yj+9k3w8fkpshjfKP72TfDx+SlZG3oPvT5PzRrlD+wU/8pvkh6Dz0P7BT/ym+SHoLGNPrMynlJY+k1PSVcS7LnQNVrv4muX+6FOVlM/1mScznjG5iqidypxTvNI5UqNX26hrUT9VKsbl7HJlPvaZgUfE7fSZdJaQfat3yO5z4443MiVXK7c56pjd1InUdIBBpJYAABIAAAGE6gAAAACfW72SG2shptPxvq9nD56qVXpnpVGp/wCiz6bpbFrGhdFXUjY7nAxGufC9WK5ibmuamcInRjGE8TOT02+4VNrroqykk2Jo1yi9C9aKnSijJ8FxZbdNqlJqXFPL/eCf1Toyp08npMT1qKFVxzmMOjVeCOT8/Iq5rFDr2x3egdTXZvorpGKyRkiK6N2eOHJ+eCoRUmm7dBd/S6llc/2aDmZFVVRU3OXHBUVURc9Sktdx89nd11FwuYPaXcuP03dvgVYdOQCDXAAAA4AAAAABVwmeo3zT9P6Jp23QYwrKZiL37KZMMt9I6uuVLSNTfNK2P5rhT6Ea1GtRqJhETCIWic17Q1N0KfNn6Rmo/dq6fCyfhUkyM1H7tXT4WT8KljnaH4sea8zO+S/3hq/hF/G01cyjkv8AeGr+EX8bTVyI8DS1z3t8kAASZAAAAMb5R/eyb4ePyU2QxvlH97Jvh4/JSsjb0H3p8n5o1yh/YKf+U3yQ9B56H9gp/wCU3yQ9BYxp9ZkPqq3LddNV1M1Myc3tx/abvTyx4mE8T6OMM1ZaVs2o6qna3EL3c7D1bLt+PBcp4FZHR+z9x1qD5r6/QhAAVOnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALdydW70zUyVDm5jpI1kX7S+q3zVfA2AqXJ7aVt2nW1MjcTVjudXPFGcGp8t/iW0uuBw2r3HTXUscFu+X6gjNR+7V0+Fk/CpJkZqL3aufwsn4VJPhofix5ozvkv94av4RfxtNXMo5L/eGq+EX8bTVyI8DS1z3t8kAASZAAAAMb5R/eyb4ePyU2Qp+ptDN1Bdo61tZzCKxI5m7G1lE6U37lwuCGjU0i5p29xt1XhYZaKH9gp/5TfJD0HGNjYo2xtTDWoiJ3IciTMk8tsFO5Q7GtxsyV0LM1FHly4Te6NfaTw4+ClxPxURyKioiou5UUM9ravKhVjVjxR85AsWsdPOsF4ckTV9CnVXwL0J1t8PLBXTzP0CjVjWpqpDgwAAeoAAAAAAAAAAAAAAAAAAAAAAAAJbTVmffb3BR4Xmc7czk6GJx+fDxIlEyuETK9hs+idO/oK0c5OzFbU4fLnixOhvh09qkpZM7U7xWtBtdZ7l6/AsrGNjY1jGo1rUwiJwRDkAXOEBGai927n8LJ+FSTOmspmVtFPSyZ2Jo3RuxxwqYBelJRmpPsZl3Jf7w1Xwi/jaauVbSujGabqqipWsWokkZzbfo9lGtznrXK7kLSQuB92qXFOvcudN5WEAASZwAAAAAAAAAAABG32zU9+tclFUbs+tG9E3scnBU/zgYbcrdU2qvloqtmxNGuF6nJ0KnYp9CFf1Tpen1HRYy2OsiReZmx/S7rRfu4kNZNjStS+zS6Op1H+Xj6mIg9FbRVNurJKSridFPGuHNd5p1p2nnKHZpqSyuAAAJAAAAAAAAAAAAAAAAAAABcNG6NfepWV1cxWW5q5RF3LOvUn8PWvTwQHhcXFO3pupUeEe/k/0qtTKy9V0f0LFzTMcntu/f7k6O3f0GnnFjGxsaxjUa1qYRqJhETqORdLBwt5dzuqrqS+C7kAASfIAAAAAAAAAAAAAAAAAAAAAAAAQmo9M0WoqVGTJzdQxPop2p6zexetOwx682KvsVX6PWxYRfYlbvZInWi/lxN8PPW0NLcaV9NWQMmhfxY9P8wvaQ1k1dP1Wpa/clvh3d3I+eQXy/wDJvU0yuqLO5aiHjzD1+kb3Lwd595RpYpIJXRTRvjkauHMe1UVO9FKNYOut7ujcx2qTz5nAAA+kAAAAAAAAAAAABEyuE4qS1m01dL7IiUdOvNZw6eT1Y08enuTJqOndE2+xbM8n/FVqb+dem5i/wp0d/EJZM681OharDeZdy+vcVfSvJ/JUqyuvLFjh4spV3Of2u6k7OPcaaxjY2NYxqNa1MI1EwiJ1HIF0sHH3d5Vup7VR8l2IAAk+QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEddLFbbzHsV9JHKqJufjDm9zk3oSIBaE5Qe1F4Zm9z5L1RXPtdcmOiKpT/cn5oVKv0nfbcq8/bZnMT68Sc43+k3UEbKNehrlzT3TxJePE+cXIrHbLkVrup25QfQ9RRUtWmKmmhmT/ALkaO8yLl0hp6dcvtNMi/wADdnyK7Jow9oab68GuW/0MMBta6E02q/8AxjU7pX/3ObND6bZwtcS/ae5fNRss9f8AcFt/jL8vUxFVROK4PTS2+srnbNJSTzr/ANuNXfebnT6es9LjmLXSMVOlIW5+ZItajWo1qIiJwRCdk+ep7Qr/AI4fNmQW7k6vdYqOqGxUca9Mrtp3/in5qhc7Tye2e3K2Spa6umTfmb2E7mpu+eS2gnCMu41e6rbtrC8N36nFjGxsRjGo1rUwiImEQ5AEmYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAf/9k=" alt="MásQdieta">
+    <div>
+      <div class="topbar-center-name">MásQdieta</div>
+      <div class="topbar-center-sub">Calculadora de puntos</div>
+    </div>
+  </div>
+  <label class="toggle" title="Modo oscuro">
+    <input type="checkbox" id="darkToggle" onchange="toggleDark()">
+    <div class="t-track"></div><div class="t-thumb"></div>
+  </label>
+</div>
+
+<div class="content">
+
+  <!-- BARRA CLIENTA IDENTIFICADA -->
+  <div class="id-bar" id="id-bar">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <div class="id-bar-text">Calculando como: <span class="id-bar-name" id="id-bar-name">—</span></div>
+    <span class="id-bar-change" onclick="cambiarClienta()">Cambiar</span>
+  </div>
+
+  <div class="intro">
+    <div class="intro-title">Calculadora de puntos</div>
+    <div class="intro-sub">Calcula el valor en puntos de cualquier alimento</div>
+    <div class="formula-pill">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 7H6a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-3M13 3h8m0 0v8m0-8L11 13"/></svg>
+      (Kcal ÷ 35) + (Grasas ÷ 12) − (Fibra ÷ 5)
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" id="tab-manual" onclick="switchTab('manual')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+      Datos
+    </button>
+    <button class="tab" id="tab-foto" onclick="switchTab('foto')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+      Foto IA
+    </button>
+    <button class="tab" id="tab-hist" onclick="switchTab('hist');cargarHistorial()">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Historial
+    </button>
+  </div>
+
+  <!-- ===================== PANEL MANUAL ===================== -->
+  <div id="panel-manual" class="panel active">
+    <div class="section">
+      <div class="section-head"><span class="section-head-icon">🥗</span><span class="section-head-title">Alimento</span></div>
+      <div class="section-body">
+        <div class="field"><label>Nombre del alimento</label><input type="text" id="nombre" placeholder="Ej: Garbanzos en conserva"></div>
+        <div class="field"><label>Cantidad a consumir (g)</label><input type="number" id="cantidad" value="100" min="1" oninput="calcular()" inputmode="decimal"></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-head"><span class="section-head-icon">📊</span><span class="section-head-title">Valores nutricionales por 100 g</span></div>
+      <div class="section-body">
+        <div class="row2">
+          <div class="field"><label>Calorías (kcal) *</label><input type="number" id="kcal" placeholder="0" min="0" step="0.1" oninput="calcular()" inputmode="decimal"></div>
+          <div class="field"><label>Grasas (g) *</label><input type="number" id="grasas" placeholder="0" min="0" step="0.1" oninput="calcular()" inputmode="decimal"></div>
+          <div class="field"><label>Fibra alimentaria (g)</label><input type="number" id="fibra" placeholder="0" min="0" step="0.1" oninput="calcular()" inputmode="decimal"></div>
+          <div class="field"><label>Proteínas (g)</label><input type="number" id="proteinas" placeholder="0" min="0" step="0.1" inputmode="decimal"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTADO -->
+    <div id="resultado-wrap" style="display:none">
+      <div class="section">
+        <div class="section-head"><span class="section-head-icon">🔢</span><span class="section-head-title">Resultado</span></div>
+        <div class="section-body">
+          <div class="result-grid">
+            <div class="result-block">
+              <div class="result-block-label">Puntos / 100g</div>
+              <div class="result-num" id="pts-100">0</div>
+              <div class="result-unit">valor de referencia</div>
+              <div class="badge-row"><span id="badge-100"></span></div>
+            </div>
+            <div class="result-block primary">
+              <div class="result-block-label">Puntos consumidos</div>
+              <div class="result-num" id="pts-consumo">0</div>
+              <div class="result-unit" id="pts-consumo-unit">por 100g</div>
+              <div class="badge-row"><span id="badge-consumo"></span></div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-top:10px;text-align:center" id="desglose-text"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-guardar" onclick="guardarEnSheet()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              Guardar en Sheet
+            </button>
+            <button class="btn" onclick="limpiar()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PANEL FOTO ===================== -->
+  <div id="panel-foto" class="panel">
+    <div class="section">
+      <div class="section-head"><span class="section-head-icon">📷</span><span class="section-head-title">Foto de la etiqueta nutricional</span></div>
+      <div class="section-body">
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+          <input type="file" id="file-input" accept="image/*" onchange="handleFile(event)">
+          <div class="upload-icon"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg></div>
+          <h3>Subir foto de la etiqueta</h3>
+          <p>Toca aquí para hacer una foto o elegir de la galería</p>
+        </div>
+        <div id="foto-preview" style="display:none">
+          <img id="preview-img" class="preview-img" alt="Etiqueta">
+          <div class="btn-row">
+            <button class="btn btn-primary" id="btn-analizar" onclick="analizarFoto()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg>
+              Analizar con IA
+            </button>
+            <button class="btn" onclick="resetFoto()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+              Cambiar foto
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="ai-loading" style="display:none" class="section">
+      <div class="section-body">
+        <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+        <div class="loading-text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Analizando etiqueta con IA...</div>
+      </div>
+    </div>
+    <div id="ai-error" style="display:none"></div>
+
+    <div id="ai-resultado" style="display:none">
+      <div class="section">
+        <div class="section-head"><span class="section-head-icon">✅</span><span class="section-head-title">Resultado del análisis</span></div>
+        <div class="section-body">
+          <div id="ai-nombre" style="font-size:16px;font-weight:600;margin-bottom:12px;color:var(--text)"></div>
+          <div id="ai-info-rows"></div>
+          <div class="field" style="margin-top:14px">
+            <label>Cantidad a consumir (g)</label>
+            <input type="number" id="ai-cantidad" value="100" min="1" oninput="recalcularAI()" inputmode="decimal">
+          </div>
+          <div class="result-grid" style="margin-top:12px">
+            <div class="result-block">
+              <div class="result-block-label">Puntos / 100g</div>
+              <div class="result-num" id="ai-pts-100">0</div>
+              <div class="result-unit">referencia</div>
+            </div>
+            <div class="result-block primary">
+              <div class="result-block-label">Puntos consumidos</div>
+              <div class="result-num" id="ai-pts-consumo">0</div>
+              <div class="result-unit" id="ai-consumo-unit">por 100g</div>
+            </div>
+          </div>
+          <div id="ai-nota"></div>
+          <div class="btn-row" style="margin-top:14px">
+            <button class="btn btn-primary" id="btn-guardar-ai" onclick="guardarEnSheetAI()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+              Guardar en Sheet
+            </button>
+            <button class="btn" onclick="resetFoto()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+              Nueva foto
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== PANEL HISTORIAL ===================== -->
+  <div id="panel-hist" class="panel">
+    <div class="section">
+      <div class="section-head"><span class="section-head-icon">📋</span><span class="section-head-title">Mis alimentos registrados</span></div>
+      <div class="section-body">
+        <div class="hist-filter">
+          <input type="text" id="hist-search" placeholder="Buscar alimento..." oninput="filtrarHistorial()">
+          <button class="btn btn-sm" onclick="cargarHistorial()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="14" height="14"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Actualizar
+          </button>
+        </div>
+        <div id="hist-loading" style="display:none">
+          <div class="loading-bar"><div class="loading-bar-inner"></div></div>
+          <div class="loading-text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Cargando historial...</div>
+        </div>
+        <div id="hist-lista"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURACIÓN — cambia esta URL por la de tu Apps Script
+// ============================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbyDdw8Q7KjXuYonpPam8BHPCYd1CFOcRL2jLhRiPO61COWZoOv2LtYMNUifPRJ3B-S4hQ/exec';
+
+// ============================================================
+let clientaActual = '';
+let aiData = null;
+let historialData = [];
+
+// DARK MODE
+function toggleDark(){const d=document.getElementById('darkToggle').checked;document.documentElement.setAttribute('data-theme',d?'dark':'light');localStorage.setItem('mqd-dark',d?'1':'0');}
+(()=>{if(localStorage.getItem('mqd-dark')==='1'){document.documentElement.setAttribute('data-theme','dark');document.addEventListener('DOMContentLoaded',()=>{const t=document.getElementById('darkToggle');if(t)t.checked=true;}); }})();
+
+// TOAST
+function showToast(msg,type='success'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.className='toast',3000);}
+
+// TABS
+function switchTab(tab){
+  ['manual','foto','hist'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('panel-'+t).classList.toggle('active',t===tab);
+  });
+}
+
+// ============================================================
+// IDENTIFICACIÓN CLIENTA
+// ============================================================
+function confirmarClienta(){
+  const val = document.getElementById('input-clienta').value.trim();
+  if(!val){showToast('Introduce tu nombre o código','error');return;}
+  clientaActual = val;
+  localStorage.setItem('mqd-clienta', val);
+  document.getElementById('id-bar-name').textContent = val;
+  document.getElementById('modal-id').style.display = 'none';
+}
+function cambiarClienta(){
+  document.getElementById('input-clienta').value = clientaActual;
+  document.getElementById('modal-id').style.display = 'flex';
+  setTimeout(()=>document.getElementById('input-clienta').focus(), 100);
+}
+
+// Al cargar: restaurar clienta si existe en localStorage
+window.addEventListener('DOMContentLoaded', ()=>{
+  const saved = localStorage.getItem('mqd-clienta');
+  if(saved){
+    clientaActual = saved;
+    document.getElementById('id-bar-name').textContent = saved;
+    document.getElementById('modal-id').style.display = 'none';
+  } else {
+    setTimeout(()=>document.getElementById('input-clienta').focus(), 300);
+  }
+});
+
+// ============================================================
+// FÓRMULA
+// ============================================================
+function calcPuntos(kcal, grasas, fibra, cantidad){
+  const factor = cantidad / 100;
+  const k = kcal * factor;
+  const g = grasas * factor;
+  const f = Math.min(fibra * factor, 4);
+  return Math.max(0, (k/35) + (g/12) - (f/5));
+}
+function calcPuntos100(kcal, grasas, fibra){
+  return calcPuntos(kcal, grasas, fibra, 100);
+}
+function renderBadge(id, pts){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(pts <= 2) el.innerHTML = '<span class="badge badge-green">Muy bajo</span>';
+  else if(pts <= 5) el.innerHTML = '<span class="badge badge-amber">Moderado</span>';
+  else el.innerHTML = '<span class="badge badge-red">Alto</span>';
+}
+
+// ============================================================
+// CÁLCULO MANUAL
+// ============================================================
+function calcular(){
+  const kcal    = parseFloat(document.getElementById('kcal').value) || 0;
+  const grasas  = parseFloat(document.getElementById('grasas').value) || 0;
+  const fibra   = parseFloat(document.getElementById('fibra').value) || 0;
+  const cantidad = parseFloat(document.getElementById('cantidad').value) || 100;
+  if(kcal === 0 && grasas === 0){document.getElementById('resultado-wrap').style.display='none';return;}
+
+  const pts100    = calcPuntos100(kcal, grasas, fibra);
+  const ptsConsumo = calcPuntos(kcal, grasas, fibra, cantidad);
+
+  document.getElementById('resultado-wrap').style.display = 'block';
+  document.getElementById('pts-100').textContent     = Math.round(pts100);
+  document.getElementById('pts-consumo').textContent = Math.round(ptsConsumo);
+  document.getElementById('pts-consumo-unit').textContent = 'por ' + cantidad + 'g';
+
+  renderBadge('badge-100', Math.round(pts100));
+  renderBadge('badge-consumo', Math.round(ptsConsumo));
+
+  const fib = Math.min(fibra, 4);
+  document.getElementById('desglose-text').textContent =
+    'Desglose /100g: ' + (kcal/35).toFixed(1) + ' kcal + ' + (grasas/12).toFixed(1) + ' grasas − ' + (fib/5).toFixed(1) + ' fibra' + (fibra > 4 ? ' (máx 4g)' : '');
+}
+
+function limpiar(){
+  ['kcal','grasas','fibra','proteinas','nombre'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cantidad').value='100';
+  document.getElementById('resultado-wrap').style.display='none';
+}
+
+// ============================================================
+// GUARDAR EN SHEET — manual
+// ============================================================
+async function guardarEnSheet(){
+  if(!clientaActual){cambiarClienta();return;}
+  const kcal    = parseFloat(document.getElementById('kcal').value) || 0;
+  const grasas  = parseFloat(document.getElementById('grasas').value) || 0;
+  const fibra   = parseFloat(document.getElementById('fibra').value) || 0;
+  const cantidad = parseFloat(document.getElementById('cantidad').value) || 100;
+  const nombre  = document.getElementById('nombre').value || 'Sin nombre';
+
+  const pts100     = Math.round(calcPuntos100(kcal, grasas, fibra));
+  const ptsConsumo = Math.round(calcPuntos(kcal, grasas, fibra, cantidad));
+
+  await enviarASheet({
+    alimento: nombre, kcal, grasas, fibra,
+    puntos100: pts100, cantidad, puntosConsumo: ptsConsumo, origen: 'Manual'
+  });
+}
+
+// ============================================================
+// FOTO IA
+// ============================================================
+function handleFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.getElementById('preview-img').src = ev.target.result;
+    document.getElementById('foto-preview').style.display = 'block';
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('ai-resultado').style.display = 'none';
+    document.getElementById('ai-error').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetFoto(){
+  document.getElementById('foto-preview').style.display = 'none';
+  document.getElementById('upload-zone').style.display = 'block';
+  document.getElementById('ai-resultado').style.display = 'none';
+  document.getElementById('ai-loading').style.display = 'none';
+  document.getElementById('ai-error').style.display = 'none';
+  document.getElementById('file-input').value = '';
+  document.getElementById('btn-analizar').disabled = false;
+  aiData = null;
+}
+
+async function analizarFoto(){
+  const src = document.getElementById('preview-img').src;
+  const base64 = src.split(',')[1];
+  const mediaType = src.split(';')[0].split(':')[1];
+  document.getElementById('ai-loading').style.display = 'block';
+  document.getElementById('ai-error').style.display = 'none';
+  document.getElementById('ai-resultado').style.display = 'none';
+  document.getElementById('btn-analizar').disabled = true;
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+          {type:'text',text:'Eres un asistente del programa MasQdieta. Analiza esta etiqueta nutricional. Extrae valores por 100g y calcula puntos con: (Kcal/35)+(Grasas/12)-(Fibra/5), fibra max 4g, minimo 0. Responde SOLO con JSON valido sin markdown: {"alimento":"nombre","kcal_100g":num,"grasas_100g":num,"fibra_100g":num,"proteinas_100g":num,"puntos_100g":num,"nota":"frase breve en español"}'}
+        ]}]
+      })
+    });
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error.message);
+    const text = data.content.find(b=>b.type==='text')?.text || '';
+    aiData = JSON.parse(text.replace(/```json|```/g,'').trim());
+    mostrarAiResultado(aiData);
+  }catch(e){
+    document.getElementById('ai-loading').style.display = 'none';
+    document.getElementById('btn-analizar').disabled = false;
+    document.getElementById('ai-error').style.display = 'block';
+    document.getElementById('ai-error').innerHTML = '<div class="error-box">No se pudo analizar la imagen. Asegúrate de que la tabla nutricional sea legible.</div>';
+  }
+}
+
+function mostrarAiResultado(d){
+  document.getElementById('ai-loading').style.display = 'none';
+  document.getElementById('ai-resultado').style.display = 'block';
+  document.getElementById('ai-nombre').textContent = d.alimento || 'Alimento analizado';
+  const rows = [
+    ['Kcal / 100g',(d.kcal_100g||0)+' kcal'],
+    ['Grasas',(d.grasas_100g||0)+' g'],
+    ['Fibra',(d.fibra_100g||0)+' g'],
+    ['Proteínas',(d.proteinas_100g||0)+' g']
+  ];
+  document.getElementById('ai-info-rows').innerHTML = rows.map(r=>
+    `<div class="info-row"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('');
+  document.getElementById('ai-cantidad').value = 100;
+  recalcularAI();
+  if(d.nota) document.getElementById('ai-nota').innerHTML = `<div class="ai-note">${d.nota}</div>`;
+  document.getElementById('btn-analizar').disabled = false;
+}
+
+function recalcularAI(){
+  if(!aiData) return;
+  const cantidad = parseFloat(document.getElementById('ai-cantidad').value) || 100;
+  const pts100 = Math.round(calcPuntos100(aiData.kcal_100g||0, aiData.grasas_100g||0, aiData.fibra_100g||0));
+  const ptsConsumo = Math.round(calcPuntos(aiData.kcal_100g||0, aiData.grasas_100g||0, aiData.fibra_100g||0, cantidad));
+  document.getElementById('ai-pts-100').textContent = pts100;
+  document.getElementById('ai-pts-consumo').textContent = ptsConsumo;
+  document.getElementById('ai-consumo-unit').textContent = 'por ' + cantidad + 'g';
+}
+
+async function guardarEnSheetAI(){
+  if(!clientaActual){cambiarClienta();return;}
+  if(!aiData) return;
+  const cantidad = parseFloat(document.getElementById('ai-cantidad').value) || 100;
+  const pts100 = Math.round(calcPuntos100(aiData.kcal_100g||0, aiData.grasas_100g||0, aiData.fibra_100g||0));
+  const ptsConsumo = Math.round(calcPuntos(aiData.kcal_100g||0, aiData.grasas_100g||0, aiData.fibra_100g||0, cantidad));
+  await enviarASheet({
+    alimento: aiData.alimento || 'Sin nombre',
+    kcal: aiData.kcal_100g || 0,
+    grasas: aiData.grasas_100g || 0,
+    fibra: aiData.fibra_100g || 0,
+    puntos100: pts100, cantidad, puntosConsumo: ptsConsumo, origen: 'Foto IA'
+  });
+}
+
+// ============================================================
+// ENVIAR A SHEET — función central
+// ============================================================
+async function enviarASheet(datos){
+  const btn = event?.target || document.getElementById('btn-guardar');
+  const textoOriginal = btn?.innerHTML || '';
+  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Guardando...'; }
+
+  try{
+    // Apps Script requiere no-cors desde dominios externos
+    // Usamos un form submit con fetch para evitar el bloqueo CORS
+    const params = new URLSearchParams({
+      accion: 'guardarCalculo',
+      clienta: clientaActual,
+      alimento: datos.alimento,
+      kcal: datos.kcal,
+      grasas: datos.grasas,
+      fibra: datos.fibra,
+      puntos100: datos.puntos100,
+      cantidad: datos.cantidad,
+      puntosConsumo: datos.puntosConsumo,
+      origen: datos.origen
+    });
+    await fetch(API_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: params.toString()
+    });
+    // no-cors devuelve respuesta opaca — si no hay excepción, se guardó
+    showToast('✓ Guardado en Google Sheets', 'success');
+  }catch(e){
+    showToast('Error al guardar. Comprueba tu conexión.', 'error');
+  } finally {
+    if(btn){ btn.disabled = false; btn.innerHTML = textoOriginal; }
+  }
+}
+
+// ============================================================
+// HISTORIAL
+// ============================================================
+async function cargarHistorial(){
+  if(!clientaActual){cambiarClienta();return;}
+  document.getElementById('hist-loading').style.display = 'block';
+  document.getElementById('hist-lista').innerHTML = '';
+  try{
+    // Para leer datos usamos GET con callback JSONP-style via parámetros URL
+    const url = API_URL + '?accion=obtenerHistorial&clienta=' + encodeURIComponent(clientaActual) + '&limite=50';
+    const resp = await fetch(url, { method:'GET', mode:'cors' });
+    const json = await resp.json();
+    if(json.ok){
+      historialData = json.registros || [];
+      renderHistorial(historialData);
+    } else {
+      document.getElementById('hist-lista').innerHTML = '<div class="hist-empty">No se pudo cargar el historial</div>';
+    }
+  }catch(e){
+    document.getElementById('hist-lista').innerHTML = '<div class="hist-empty">Sin conexión con la API</div>';
+  } finally {
+    document.getElementById('hist-loading').style.display = 'none';
+  }
+}
+
+function renderHistorial(items){
+  const el = document.getElementById('hist-lista');
+  if(!items || items.length === 0){
+    el.innerHTML = '<div class="hist-empty">Aún no tienes alimentos registrados</div>';
+    return;
+  }
+  el.innerHTML = items.map(r => `
+    <div class="hist-item">
+      <div>
+        <div class="hist-alimento">${r.alimento}</div>
+        <div class="hist-meta">${r.fecha} · ${r.hora} · ${r.cantidad}g · ${r.origen}</div>
+      </div>
+      <div class="hist-puntos">
+        <div class="hist-pts-big">${r.puntosConsumo}p</div>
+        <div class="hist-pts-sub">${r.puntos100}p/100g</div>
+      </div>
+    </div>`).join('');
+}
+
+function filtrarHistorial(){
+  const q = document.getElementById('hist-search').value.toLowerCase();
+  if(!q){ renderHistorial(historialData); return; }
+  renderHistorial(historialData.filter(r => r.alimento.toLowerCase().includes(q)));
+}
+</script>
+</body>
+</html>
