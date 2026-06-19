@@ -1,0 +1,2116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Diario de Comidas - MasQdieta</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--pink:#E8477A;--pink-dark:#C03060;--pink-light:#FBE8EF;--navy:#0D2B3E;--navy-light:#1A3C5A;--bg:#FDF5F7;--border:#EDD0DA;--radius:14px;--radius-sm:10px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;font-size:15px;color:var(--navy)}
+
+/* TOPBAR identico al Login/Dashboard */
+.topbar{background:var(--navy);padding:13px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--pink);position:sticky;top:0;z-index:100}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-logo img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--pink)}
+.brand-sm{font-family:'Playfair Display',serif;color:var(--pink);font-size:18px;font-weight:700}
+.brand-sub-sm{font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase}
+.topbar-right{background:var(--pink);color:white;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;white-space:nowrap}
+
+/* TABS */
+.tabs{display:flex;background:white;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;padding:13px 6px;text-align:center;font-size:12px;font-weight:500;color:#999;border-bottom:2px solid transparent;cursor:pointer;transition:all 0.2s;white-space:nowrap;min-width:60px}
+.tab.active{color:var(--pink);border-bottom-color:var(--pink);font-weight:600;background:#fff8fc}
+
+/* PANELS */
+.panel{display:none;padding:16px;padding-bottom:80px}
+.panel.active{display:block}
+
+/* CARDS */
+.card{background:white;border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.card-title{font-family:'Playfair Display',serif;font-size:14px;color:var(--pink);margin-bottom:12px}
+
+/* CAMPOS */
+.field{margin-bottom:10px}
+.field label{display:block;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.field input,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:14px;font-family:inherit;color:var(--navy);background:white;outline:none;transition:border-color 0.2s}
+.field input:focus,.field select:focus{border-color:var(--pink)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* BANNER PUNTOS */
+.pts-banner{background:linear-gradient(135deg,var(--navy) 0%,#1A2A4A 100%);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.pts-banner-label{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:2px}
+.pts-banner-val{font-size:22px;font-weight:600;color:white}
+.pts-banner-sub{font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px}
+.pts-ring{width:64px;height:64px;position:relative;flex-shrink:0}
+.pts-ring svg{width:64px;height:64px;transform:rotate(-90deg)}
+.pts-ring-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:600;color:white;text-align:center;line-height:1.2}
+.pts-ring-num small{display:block;font-size:9px;font-weight:400;color:rgba(255,255,255,0.5)}
+
+/* NAV SEMANA */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.week-nav-btn{width:32px;height:32px;border:1.5px solid var(--border);border-radius:8px;background:white;color:var(--pink);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:600}
+.week-label{font-size:13px;font-weight:500;color:var(--navy)}
+.week-days{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin-bottom:12px}
+.week-days::-webkit-scrollbar{display:none}
+.day-pill{min-width:42px;padding:8px 4px;border-radius:10px;text-align:center;cursor:pointer;border:1.5px solid var(--border);background:white;transition:all 0.15s;flex-shrink:0}
+.day-pill.active{background:var(--pink);border-color:var(--pink)}
+.day-pill.has-data{border-color:rgba(232,71,122,0.4)}
+.day-pill-name{font-size:10px;font-weight:500;color:#888;display:block}
+.day-pill.active .day-pill-name{color:rgba(255,255,255,0.8)}
+.day-pill-num{font-size:13px;font-weight:600;color:var(--navy);display:block}
+.day-pill.active .day-pill-num{color:white}
+.day-pill-pts{font-size:9px;color:var(--pink);display:block;margin-top:1px}
+.day-pill.active .day-pill-pts{color:rgba(255,255,255,0.75)}
+
+/* COMIDAS */
+.comida-block{margin-bottom:10px}
+.comida-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:white;border-radius:12px 12px 0 0;border:1.5px solid var(--border);border-bottom:none;cursor:pointer}
+.comida-header.open{border-color:var(--pink);background:#fff8fc}
+.comida-header-left{display:flex;align-items:center;gap:8px}
+.comida-tag{font-size:10px;font-weight:700;width:26px;height:26px;border-radius:6px;background:var(--pink-light);color:var(--pink);display:flex;align-items:center;justify-content:center;letter-spacing:0;flex-shrink:0}
+.comida-name{font-size:14px;font-weight:500;color:var(--navy)}
+.comida-pts-badge{background:var(--pink-light);color:var(--pink);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600}
+.comida-body{background:#fafafa;border:1.5px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden;display:none}
+.comida-body.open{display:block;border-color:var(--pink)}
+.items-list{padding:8px}
+.item-row{display:flex;align-items:center;gap:8px;padding:6px 8px;background:white;border-radius:8px;margin-bottom:4px;border:1px solid var(--border)}
+.item-name{flex:1;font-size:13px;color:var(--navy)}
+.item-qty{font-size:11px;color:#999;white-space:nowrap}
+.item-pts{font-size:13px;font-weight:600;color:var(--pink);min-width:28px;text-align:right}
+.item-del{width:24px;height:24px;border:none;background:var(--pink-light);color:var(--pink);border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.comida-empty{padding:14px;text-align:center;font-size:12px;color:#bbb}
+.comida-total-bar{padding:8px 14px;background:var(--pink-light);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#888}
+.comida-total-bar strong{color:var(--pink);font-size:14px}
+.add-food-btn{width:100%;padding:10px;background:var(--navy);color:white;border:none;border-radius:0 0 10px 10px;font-size:13px;font-weight:500;cursor:pointer}
+.add-food-btn:active{background:var(--navy-light)}
+.notas-input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;color:var(--navy);background:white;outline:none;resize:none;min-height:70px}
+.notas-input:focus{border-color:var(--pink)}
+
+/* SEMANA RESUMEN */
+.resumen-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:12px}
+.res-day{text-align:center;padding:6px 2px;background:white;border-radius:8px;border:1px solid var(--border);cursor:pointer}
+.res-day.today{border-color:var(--pink);background:#fff8fc}
+.res-day-name{font-size:9px;color:#999;display:block}
+.res-day-pts{font-size:12px;font-weight:600;color:var(--navy);display:block}
+.res-day-bar{height:3px;border-radius:2px;background:var(--pink);margin:3px auto;max-width:24px}
+.res-day-bar.over{background:#e74c3c}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+.stat-box{text-align:center;padding:10px;border-radius:10px}
+.stat-box.pink{background:var(--pink-light)}
+.stat-box.green{background:#E8F5E9}
+.stat-box.orange{background:#FFF3E0}
+.stat-label{font-size:11px;margin-bottom:2px}
+.stat-val{font-size:20px;font-weight:700;color:var(--navy)}
+.stat-unit{font-size:10px;color:#999;margin-top:1px}
+
+/* GUIA DE PUNTOS */
+.search-box{position:relative;margin-bottom:10px}
+.search-box input{width:100%;padding:11px 16px 11px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:inherit;outline:none;background:white;color:var(--navy)}
+.search-box input:focus{border-color:var(--pink)}
+.cat-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
+.cat-scroll::-webkit-scrollbar{display:none}
+.cat-chip{white-space:nowrap;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:12px;font-weight:500;color:#888;cursor:pointer;transition:all 0.15s;font-family:inherit}
+.cat-chip.active{background:var(--pink);border-color:var(--pink);color:white}
+.food-list{display:flex;flex-direction:column;gap:6px}
+.food-card{background:white;border-radius:12px;padding:12px 14px;border:1.5px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color 0.15s}
+.food-card:active{border-color:var(--pink);background:#fff8fc}
+.food-info{flex:1;min-width:0}
+.food-name{font-size:14px;font-weight:500;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.food-qty-ref{font-size:12px;color:#999;margin-top:1px}
+.food-cat-tag{font-size:10px;color:#bbb}
+.food-pts-big{font-size:22px;font-weight:700;color:var(--pink);min-width:32px;text-align:right;flex-shrink:0}
+.food-pts-label{font-size:9px;color:var(--pink);text-align:right;margin-top:-2px}
+.results-info{font-size:12px;color:#bbb;margin-bottom:8px}
+
+/* MODAL CANTIDAD */
+.overlay{display:none;position:fixed;inset:0;background:rgba(13,43,62,0.65);z-index:200;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:white;border-radius:20px 20px 0 0;padding:24px 20px;width:100%;max-width:480px}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--navy);margin-bottom:3px}
+.modal-sub{font-size:13px;color:#999;margin-bottom:18px}
+.modal-qty-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.qty-btn{width:44px;height:44px;border-radius:12px;border:2px solid var(--pink);background:white;color:var(--pink);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0}
+.qty-input{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:20px;font-weight:600;text-align:center;font-family:inherit;color:var(--navy);outline:none}
+.qty-input:focus{border-color:var(--pink)}
+.qty-unit{font-size:14px;color:#999;min-width:28px;text-align:left}
+.pts-calc{background:var(--pink-light);border-radius:12px;padding:14px;text-align:center;margin-bottom:14px}
+.pts-calc-num{font-size:32px;font-weight:700;color:var(--pink)}
+.pts-calc-label{font-size:13px;color:#999;margin-top:2px}
+.modal-comida-sel{margin-bottom:16px}
+.modal-comida-sel label{font-size:12px;color:#888;margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:0.04em;font-weight:600}
+.modal-comida-sel select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;color:var(--navy);outline:none}
+.btn-confirm{width:100%;padding:14px;background:#1B5E20;color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn-cancel{width:100%;padding:11px;background:transparent;color:#999;border:none;font-size:14px;cursor:pointer;margin-top:8px;font-family:inherit}
+
+/* FAB */
+.fab{position:fixed;bottom:20px;right:16px;width:50px;height:50px;background:var(--pink);border-radius:50%;border:none;color:white;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(232,71,122,0.4);z-index:90;line-height:1}
+
+/* CHAT IA */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 160px);min-height:400px}
+.chat-ctx-bar{background:var(--pink-light);border:1px solid var(--border);border-radius:10px;padding:9px 14px;margin-bottom:10px;font-size:12px;color:var(--pink);font-weight:500}
+.chat-suggestions{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.sug-chip{padding:7px 12px;border-radius:20px;border:1.5px solid var(--border);background:white;font-size:12px;color:var(--pink);cursor:pointer;white-space:nowrap;font-family:inherit}
+.sug-chip:active{background:var(--pink-light)}
+.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:8px}
+.msg{max-width:88%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.55}
+.msg-user{align-self:flex-end;background:var(--pink);color:white;border-bottom-right-radius:4px}
+.msg-ai{align-self:flex-start;background:white;color:var(--navy);border-bottom-left-radius:4px;border:1px solid var(--border)}
+.msg-ai strong{color:var(--pink)}
+.msg-typing{align-self:flex-start;background:white;padding:12px 16px;border-radius:16px;border-bottom-left-radius:4px;border:1px solid var(--border)}
+.typing-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--pink);margin:0 2px;animation:bounce 1.2s infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.chat-empty{text-align:center;padding:40px 16px;color:#bbb}
+.chat-empty-icon{font-size:36px;margin-bottom:10px;color:var(--pink)}
+.chat-empty-title{font-size:15px;font-weight:600;color:#888;margin-bottom:6px}
+.chat-empty-sub{font-size:13px;line-height:1.5}
+.chat-input-row{display:flex;gap:8px;margin-top:8px;align-items:flex-end}
+.chat-input-row textarea{flex:1;padding:11px 14px;border:1.5px solid var(--border);border-radius:14px;font-size:14px;font-family:inherit;color:var(--navy);outline:none;resize:none;min-height:44px;max-height:120px;line-height:1.4}
+.chat-input-row textarea:focus{border-color:var(--pink)}
+.chat-send-btn{width:44px;height:44px;background:var(--pink);border:none;border-radius:12px;color:white;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.chat-send-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* TOAST */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:500;z-index:300;display:none;white-space:nowrap;border-bottom:2px solid var(--pink)}
+.toast.show{display:block}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LOGIN OVERLAY */
+.login-overlay{display:flex;position:fixed;inset:0;background:var(--bg);z-index:999;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px}
+.login-overlay.hidden{display:none}
+.login-card{background:white;border-radius:var(--radius);box-shadow:0 8px 40px rgba(232,71,122,.15);width:100%;max-width:380px;overflow:hidden}
+.login-head{background:var(--navy);padding:28px 24px 22px;text-align:center;border-bottom:3px solid var(--pink)}
+.login-head img{width:60px;height:60px;border-radius:50%;border:2px solid var(--pink);margin-bottom:12px;object-fit:cover}
+.login-brand{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:white}
+.login-brand span{color:var(--pink)}
+.login-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:4px;letter-spacing:.1em;text-transform:uppercase}
+.login-body{padding:22px}
+.login-label{display:block;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.login-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;font-family:inherit;color:var(--navy);outline:none;transition:.2s;margin-bottom:14px}
+.login-input:focus{border-color:var(--pink)}
+.otp-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:14px}
+.otp-d{width:100%;aspect-ratio:1;border:2px solid var(--border);border-radius:8px;font-size:20px;font-weight:700;text-align:center;font-family:'Playfair Display',serif;color:var(--navy);outline:none;-webkit-appearance:none}
+.otp-d:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(232,71,122,.12)}
+.login-btn{width:100%;padding:13px;border-radius:var(--radius-sm);font-size:15px;font-weight:700;cursor:pointer;border:none;font-family:inherit;background:var(--pink);color:white;display:flex;align-items:center;justify-content:center;gap:8px}
+.login-btn:disabled{opacity:.6;cursor:default}
+.login-btn-link{background:none;border:none;color:#aaa;font-size:13px;margin-top:10px;cursor:pointer;font-family:inherit;width:100%;text-align:center;padding:4px;text-decoration:underline}
+.login-msg{border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:12px;font-size:13px;font-weight:500;display:none}
+.login-msg.show{display:block}
+.login-msg.err{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}
+.login-msg.dev{background:#FFF8E1;color:#E65100;border:1px solid #FFE082}
+.login-step{display:none}.login-step.active{display:block}
+.spin-sm{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+</style>
+</head>
+<body>
+
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-head">
+      <img src="https://drive.google.com/thumbnail?sz=w200&id=1qKdpJX0J_UiaMvEfen9a81z7kSb1S_NJ" alt="logo" onerror="this.style.display='none'">
+      <div class="login-brand">M<span>&#225;</span>sQdieta</div>
+      <div class="login-sub">Diario de comidas</div>
+    </div>
+    <div class="login-body">
+      <!-- PASO 1: Teléfono -->
+      <div class="login-step active" id="ls1">
+        <div class="login-msg err" id="lmsg1"></div>
+        <label class="login-label">Tu tel&#233;fono</label>
+        <input class="login-input" type="tel" id="ltel" placeholder="6XX XXX XXX" onkeydown="if(event.key==='Enter')loginSolicitarOTP()">
+        <button class="login-btn" id="lbtn1" onclick="loginSolicitarOTP()">Continuar &#8594;</button>
+      </div>
+      <!-- PASO 2: OTP -->
+      <div class="login-step" id="ls2">
+        <div style="text-align:center;margin-bottom:16px">
+          <div style="font-size:14px;font-weight:600;color:var(--navy)" id="lOtpTitle">C&#243;digo enviado</div>
+          <div style="font-size:12px;color:#999;margin-top:4px">Introduce el c&#243;digo de 6 d&#237;gitos</div>
+        </div>
+        <div class="login-msg dev" id="lmsgDev"></div>
+        <div class="login-msg err" id="lmsg2"></div>
+        <div class="otp-grid">
+          <input class="otp-d" type="number" id="ld0" oninput="otpAvanzar(0)" onkeydown="otpRetroceder(event,0)">
+          <input class="otp-d" type="number" id="ld1" oninput="otpAvanzar(1)" onkeydown="otpRetroceder(event,1)">
+          <input class="otp-d" type="number" id="ld2" oninput="otpAvanzar(2)" onkeydown="otpRetroceder(event,2)">
+          <input class="otp-d" type="number" id="ld3" oninput="otpAvanzar(3)" onkeydown="otpRetroceder(event,3)">
+          <input class="otp-d" type="number" id="ld4" oninput="otpAvanzar(4)" onkeydown="otpRetroceder(event,4)">
+          <input class="otp-d" type="number" id="ld5" oninput="otpAvanzar(5)" onkeydown="otpRetroceder(event,5)">
+        </div>
+        <button class="login-btn" id="lbtn2" onclick="loginVerificarOTP()">Verificar c&#243;digo</button>
+        <button class="login-btn-link" onclick="loginVolver()">&#8592; Cambiar tel&#233;fono</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <img src="https://drive.google.com/thumbnail?sz=w200&id=1qKdpJX0J_UiaMvEfen9a81z7kSb1S_NJ" alt="MasQdieta" onerror="this.style.display='none'">
+    <div>
+      <div class="brand-sm">M&#225;sQdieta</div>
+      <div class="brand-sub-sm">Diario de comidas</div>
+    </div>
+  </div>
+  <div class="topbar-right" id="header-pts-badge">30 pts/d&#237;a</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('diario',this)">Diario</div>
+  <div class="tab" onclick="switchTab('semana',this)">Semana</div>
+  <div class="tab" onclick="switchTab('guia',this)">Gu&#237;a puntos</div>
+  <div class="tab" onclick="switchTab('config',this)">ID</div>
+  <div class="tab" onclick="switchTab('ia',this);initChat()">Asistente IA</div>
+</div>
+
+<!-- PANEL DIARIO -->
+<div id="panel-diario" class="panel active">
+  <div class="week-nav">
+    <button class="week-nav-btn" onclick="changeWeek(-1)">&#8249;</button>
+    <span class="week-label" id="week-label-diario"></span>
+    <button class="week-nav-btn" onclick="changeWeek(1)">&#8250;</button>
+  </div>
+  <div class="week-days" id="week-days-pills"></div>
+  <div class="pts-banner">
+    <div>
+      <div class="pts-banner-label">Puntos hoy</div>
+      <div class="pts-banner-val" id="pts-today">0 <span style="font-size:14px;font-weight:400;color:rgba(255,255,255,0.4)">/ <span id="pts-max-banner">30</span></span></div>
+      <div class="pts-banner-sub" id="pts-left-label">Quedan 30 pts disponibles</div>
+    </div>
+    <div class="pts-ring">
+      <svg viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
+        <circle id="ring-progress" cx="32" cy="32" r="26" fill="none" stroke="#E8477A" stroke-width="6" stroke-dasharray="163.4" stroke-dashoffset="163.4" stroke-linecap="round"/>
+      </svg>
+      <div class="pts-ring-num" id="ring-pct">0%<small>hoy</small></div>
+    </div>
+  </div>
+  <div id="comidas-container"></div>
+  <div class="card">
+    <div class="card-title">Notas del d&#237;a</div>
+    <textarea class="notas-input" id="notas-dia" placeholder="Observaciones, sensaciones, agua..." rows="3" oninput="saveNotas()"></textarea>
+  </div>
+</div>
+
+<!-- PANEL SEMANA -->
+<div id="panel-semana" class="panel">
+  <div class="week-nav">
+    <button class="week-nav-btn" onclick="changeWeek(-1)">&#8249;</button>
+    <span class="week-label" id="week-label-semana"></span>
+    <button class="week-nav-btn" onclick="changeWeek(1)">&#8250;</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Resumen semanal</div>
+    <div class="resumen-grid" id="resumen-grid"></div>
+    <div class="stat-row">
+      <div class="stat-box pink"><div class="stat-label" style="color:#E8477A;font-size:11px">Total semana</div><div class="stat-val" id="stat-total">0</div><div class="stat-unit">puntos</div></div>
+      <div class="stat-box green"><div class="stat-label" style="color:#1B5E20;font-size:11px">Media/d&#237;a</div><div class="stat-val" id="stat-media">0</div><div class="stat-unit">pts/d&#237;a</div></div>
+      <div class="stat-box orange"><div class="stat-label" style="color:#e65100;font-size:11px">D&#237;as ok</div><div class="stat-val" id="stat-dias">0/7</div><div class="stat-unit">cumplidos</div></div>
+    </div>
+  </div>
+  <div class="card" id="semana-detalle"></div>
+</div>
+
+<!-- PANEL GUIA -->
+<div id="panel-guia" class="panel">
+  <div class="search-box">
+    <input type="text" id="guia-search" placeholder="Buscar alimento..." oninput="filterGuia()" autocomplete="off">
+  </div>
+  <div class="cat-scroll" id="cat-scroll"></div>
+  <div class="results-info" id="guia-results-info"></div>
+  <div class="food-list" id="food-list"></div>
+</div>
+
+<!-- PANEL IDENTIFICACION -->
+<div id="panel-config" class="panel">
+
+  <div class="card">
+    <div class="card-title">Identificaci&#243;n</div>
+    <p style="font-size:12px;color:#999;margin-bottom:14px;line-height:1.5">
+      Estos datos se cargan desde tu ficha en M&#225;sQdieta. 
+      Contacta con tu nutricionista si hay alg&#250;n error.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafafa;border-radius:10px;border:1px solid var(--border)">
+        <span style="font-size:12px;color:#999;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Nombre</span>
+        <span style="font-size:14px;font-weight:500;color:var(--navy)" id="id-nombre">-</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafafa;border-radius:10px;border:1px solid var(--border)">
+        <span style="font-size:12px;color:#999;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Tel&#233;fono</span>
+        <span style="font-size:14px;font-weight:500;color:var(--navy)" id="id-tel">-</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--pink-light);border-radius:10px;border:1px solid var(--border)">
+        <span style="font-size:12px;color:var(--pink);text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Puntos diarios</span>
+        <span style="font-size:18px;font-weight:700;color:var(--pink)" id="id-pts">30</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafafa;border-radius:10px;border:1px solid var(--border)">
+        <span style="font-size:12px;color:#999;text-transform:uppercase;letter-spacing:0.05em;font-weight:600">Pr&#243;xima cita</span>
+        <span style="font-size:13px;font-weight:500;color:var(--navy)" id="id-cita">-</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Puntos extra del d&#237;a</div>
+    <p style="font-size:12px;color:#999;margin-bottom:14px;line-height:1.5">
+      Puntos adicionales que tu nutricionista te ha autorizado para hoy (celebraciones, eventos especiales...).
+    </p>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button onclick="changePtsExtra(-1)" style="width:44px;height:44px;border-radius:12px;border:2px solid var(--pink);background:white;color:var(--pink);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0">&#8722;</button>
+      <div style="flex:1;text-align:center;padding:12px;background:var(--pink-light);border-radius:12px">
+        <div style="font-size:32px;font-weight:700;color:var(--pink)" id="pts-extra-val">0</div>
+        <div style="font-size:12px;color:#999;margin-top:2px">puntos extra hoy</div>
+      </div>
+      <button onclick="changePtsExtra(1)" style="width:44px;height:44px;border-radius:12px;border:2px solid var(--pink);background:white;color:var(--pink);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0">+</button>
+    </div>
+    <div style="margin-top:10px;padding:10px 14px;background:#fafafa;border-radius:10px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:#999">Puntos totales disponibles hoy</span>
+      <span style="font-size:16px;font-weight:700;color:var(--navy)" id="id-pts-total">30</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Acerca de</div>
+    <p style="font-size:13px;color:#999;line-height:1.6">
+      Diario de comidas M&#225;sQdieta &middot; v2.0<br>
+      <span style="font-size:12px">masqdieta.com</span>
+    </p>
+  </div>
+
+</div>
+
+<!-- PANEL ASISTENTE IA -->
+<div id="panel-ia" class="panel">
+  <div class="chat-wrap">
+    <div class="chat-ctx-bar" id="chat-ctx-bar">Contexto cargado: puntos de hoy y semana</div>
+    <div class="chat-suggestions" id="chat-suggestions">
+      <div class="sug-chip" onclick="sendSuggestion(this)">Que puedo cenar?</div>
+      <div class="sug-chip" onclick="sendSuggestion(this)">Ideas de tentempie</div>
+      <div class="sug-chip" onclick="sendSuggestion(this)">Como voy esta semana?</div>
+      <div class="sug-chip" onclick="sendSuggestion(this)">Receta con pocos puntos</div>
+      <div class="sug-chip" onclick="sendSuggestion(this)">Puedo tomar algo dulce?</div>
+      <div class="sug-chip" onclick="sendSuggestion(this)">Recetas MasQdieta</div>
+    </div>
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-empty" id="chat-empty">
+        <div class="chat-empty-icon">*</div>
+        <div class="chat-empty-title">Hola, soy tu asistente MasQdieta</div>
+        <div class="chat-empty-sub">Preguntame lo que necesites: que cenar, ideas de tentempie, como vas con tus puntos o cualquier duda del dia.</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <textarea id="chat-input" placeholder="Escribe tu pregunta..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResize(this)"></textarea>
+      <button class="chat-send-btn" id="chat-send-btn" onclick="sendChat()">&#9658;</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CANTIDAD -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title" id="modal-food-name"></div>
+    <div class="modal-sub" id="modal-food-ref"></div>
+    <div class="modal-qty-row">
+      <button class="qty-btn" onclick="changeQty(-10)">&#8722;</button>
+      <input type="number" class="qty-input" id="modal-qty" value="100" min="1" oninput="recalcModal()">
+      <span class="qty-unit" id="modal-unit">g</span>
+      <button class="qty-btn" onclick="changeQty(10)">+</button>
+    </div>
+    <div class="pts-calc">
+      <div class="pts-calc-num" id="modal-pts-calc">0</div>
+      <div class="pts-calc-label">puntos para esta cantidad</div>
+    </div>
+    <div class="modal-comida-sel">
+      <label>A&#241;adir a la comida</label>
+      <select id="modal-comida-dest">
+        <option value="0">Desayuno</option>
+        <option value="1">Comida</option>
+        <option value="2">Cena</option>
+        <option value="3">Tentempies</option>
+      </select>
+    </div>
+    <button class="btn-confirm" onclick="confirmAdd()">Añadir al diario</button>
+    <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="switchTab('guia',document.querySelectorAll('.tab')[2])">+</button>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+//  CONFIGURACIÓN GAS — URL del Web App publicado
+// ============================================================
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbwnEFAfLA1NSRILgTdWMRv8g19FQCV4f88NpE9aPaHn5rs8lFbzid827PBlzvHr0Czz/exec'; // ← PEGAR AQUÍ LA URL del Web App tras redesplegar
+
+// ============================================================
+//  ESTADO DE AUTENTICACIÓN
+// ============================================================
+var authToken    = localStorage.getItem('mqd_token') || '';
+var authNombre   = localStorage.getItem('mqd_nombre') || '';
+var authTelefono = localStorage.getItem('mqd_tel') || '';
+var gasModoLocal = !GAS_URL; // Si no hay URL, modo local (sin GAS)
+
+// ============================================================
+//  INICIALIZACIÓN — verificar sesión o mostrar login
+// ============================================================
+function initAuth() {
+  if (gasModoLocal) {
+    // Sin GAS configurado: modo local con datos de config
+    ocultarLogin();
+    return;
+  }
+  if (!authToken) { mostrarLogin(); return; }
+
+  // Verificar token con el servidor
+  gasCall('verificarSesion', [authToken], function(res) {
+    if (res && res.ok) {
+      authNombre   = res.nombre;
+      authTelefono = res.telefono;
+      localStorage.setItem('mqd_nombre', res.nombre);
+      localStorage.setItem('mqd_tel',    res.telefono);
+      ocultarLogin();
+      cargarPerfilDesdeGAS();
+    } else {
+      localStorage.removeItem('mqd_token');
+      localStorage.removeItem('mqd_nombre');
+      localStorage.removeItem('mqd_tel');
+      mostrarLogin();
+    }
+  });
+}
+
+function mostrarLogin() {
+  document.getElementById('loginOverlay').classList.remove('hidden');
+}
+function ocultarLogin() {
+  document.getElementById('loginOverlay').classList.add('hidden');
+}
+
+// ============================================================
+//  FLUJO LOGIN — paso 1: solicitar OTP
+// ============================================================
+function loginSolicitarOTP() {
+  var tel = (document.getElementById('ltel').value || '').replace(/\s/g,'').trim();
+  if (!tel || tel.length < 9) {
+    loginMostrarMsg('lmsg1', 'Introduce un teléfono válido');
+    return;
+  }
+  loginMostrarMsg('lmsg1', '');
+  var btn = document.getElementById('lbtn1');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin-sm"></div>';
+
+  if (gasModoLocal) {
+    // Modo local: acceso directo sin OTP
+    authTelefono = tel;
+    config.tel = tel;
+    localStorage.setItem('mqd_config', JSON.stringify(config));
+    ocultarLogin();
+    btn.disabled = false;
+    btn.textContent = 'Continuar →';
+    return;
+  }
+
+  gasCall('solicitarOTP', [tel], function(res) {
+    btn.disabled = false;
+    btn.textContent = 'Continuar →';
+    if (!res || !res.ok) {
+      loginMostrarMsg('lmsg1', res ? res.error : 'Error de conexión');
+      return;
+    }
+    // Pasar a paso 2
+    document.getElementById('ls1').classList.remove('active');
+    document.getElementById('ls2').classList.add('active');
+    document.getElementById('lOtpTitle').textContent = 'Hola ' + res.nombre + ', código enviado';
+    if (res.modoDev && res.codigo) {
+      var md = document.getElementById('lmsgDev');
+      md.textContent = 'DEV: Tu código es ' + res.codigo;
+      md.classList.add('show');
+    }
+    document.getElementById('ld0').focus();
+  });
+}
+
+// ============================================================
+//  FLUJO LOGIN — paso 2: verificar OTP
+// ============================================================
+function loginVerificarOTP() {
+  var tel    = (document.getElementById('ltel').value || '').replace(/\s/g,'').trim();
+  var codigo = ['ld0','ld1','ld2','ld3','ld4','ld5'].map(function(id) {
+    return document.getElementById(id).value;
+  }).join('');
+
+  if (codigo.length !== 6) {
+    loginMostrarMsg('lmsg2', 'Introduce los 6 dígitos');
+    return;
+  }
+  loginMostrarMsg('lmsg2', '');
+  var btn = document.getElementById('lbtn2');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin-sm"></div>';
+
+  gasCall('verificarOTP', [tel, codigo], function(res) {
+    btn.disabled = false;
+    btn.textContent = 'Verificar código';
+    if (!res || !res.ok) {
+      loginMostrarMsg('lmsg2', res ? res.error : 'Error de conexión');
+      return;
+    }
+    // Sesión OK
+    authToken    = res.token;
+    authNombre   = res.nombre;
+    authTelefono = res.telefono;
+    localStorage.setItem('mqd_token',  res.token);
+    localStorage.setItem('mqd_nombre', res.nombre);
+    localStorage.setItem('mqd_tel',    res.telefono);
+    ocultarLogin();
+    cargarPerfilDesdeGAS();
+  });
+}
+
+function loginVolver() {
+  document.getElementById('ls2').classList.remove('active');
+  document.getElementById('ls1').classList.add('active');
+  ['ld0','ld1','ld2','ld3','ld4','ld5'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  loginMostrarMsg('lmsg2', '');
+  loginMostrarMsg('lmsgDev', '');
+}
+
+function otpAvanzar(i) {
+  var el = document.getElementById('ld' + i);
+  if (el.value.length > 1) el.value = el.value.slice(-1);
+  if (el.value && i < 5) document.getElementById('ld' + (i+1)).focus();
+  if (i === 5 && el.value) loginVerificarOTP();
+}
+function otpRetroceder(e, i) {
+  if (e.key === 'Backspace' && !document.getElementById('ld'+i).value && i > 0) {
+    document.getElementById('ld'+(i-1)).focus();
+  }
+}
+function loginMostrarMsg(id, txt) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = txt;
+  txt ? el.classList.add('show') : el.classList.remove('show');
+}
+
+// ============================================================
+//  CARGAR PERFIL DESDE GAS
+// ============================================================
+function cargarPerfilDesdeGAS() {
+  if (gasModoLocal) { loadConfig(); return; }
+
+  gasCall('getPerfilClienta', [authToken], function(res) {
+    if (!res || !res.ok) { loadConfig(); return; }
+
+    // Actualizar config con datos del Sheet
+    config.nombre      = res.nombre || authNombre;
+    config.tel         = res.telefono || authTelefono;
+    config.pts         = res.ptsAsignados || 30;
+    config.cita        = res.proximaCita || '';
+    config.ptsExtra    = config.ptsExtra || 0;
+    localStorage.setItem('mqd_config', JSON.stringify(config));
+
+    // Actualizar topbar y panel ID
+    var badge = document.getElementById('header-pts-badge');
+    if (badge) badge.textContent = config.pts + ' pts/d\u00eda';
+    loadConfig();
+    updatePtsBanner();
+
+    // Cargar diario desde GAS
+    cargarDiarioDesdeGAS(0);
+  });
+}
+
+// ============================================================
+//  CARGAR Y GUARDAR DIARIO EN GAS
+// ============================================================
+function cargarDiarioDesdeGAS(offset) {
+  if (gasModoLocal) { renderWeekPills(); renderComidas(); return; }
+
+  gasCall('getDiarioClienta', [authToken, offset], function(res) {
+    if (!res || !res.ok) { renderWeekPills(); renderComidas(); return; }
+
+    // Convertir registros del Sheet al formato diary de la app
+    diary = {};
+    var registros = res.registros || [];
+    registros.forEach(function(r) {
+      if (!r.nombre) return; // fila vacía de marcador
+      var dk = r.fecha; // 'yyyy-MM-dd'
+      if (!diary[dk]) diary[dk] = { comidas: [[],[],[],[]], notas: r.notas || '', ptsExtra: r.ptsExtra || 0 };
+      var ci = ['desayuno','comida','cena','tentempies'].indexOf(r.comida);
+      if (ci >= 0) {
+        diary[dk].comidas[ci].push({ name: r.nombre, qty: r.qty, unit: r.unit, pts: r.pts });
+      }
+      if (r.notas) diary[dk].notas = r.notas;
+      if (r.ptsExtra) diary[dk].ptsExtra = r.ptsExtra;
+    });
+
+    renderWeekPills();
+    renderComidas();
+  });
+}
+
+function guardarDiaEnGAS(d) {
+  if (gasModoLocal) return; // En modo local ya se guarda en localStorage
+
+  var dk   = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  var data = getDayData(d);
+
+  gasCall('saveDiarioClienta', [authToken, {
+    fecha:    dk,
+    comidas:  data.comidas,
+    notas:    data.notas || '',
+    ptsExtra: data.ptsExtra || 0
+  }], function(res) {
+    if (res && res.ok) {
+      showToast('Guardado en MásQdieta');
+    }
+  });
+}
+
+// ============================================================
+//  LLAMADA GENÉRICA A GAS VIA FETCH
+// ============================================================
+function gasCall(fn, params, callback) {
+  if (!GAS_URL) { callback(null); return; }
+
+  var url = GAS_URL + '?action=' + encodeURIComponent(fn) +
+    '&params=' + encodeURIComponent(JSON.stringify(params));
+
+  fetch(url, { mode: 'cors' })
+    .then(function(r) { return r.json(); })
+    .then(function(data) { callback(data); })
+    .catch(function(e) {
+      console.error('gasCall error:', e);
+      callback(null);
+    });
+}
+
+
+
+// ===== DATOS =====
+const COMIDAS_DEF = [
+  {id:'desayuno', name:'Desayuno', emoji:'[D]'},
+  {id:'comida',   name:'Comida',   emoji:'[C]'},
+  {id:'cena',     name:'Cena',     emoji:'[N]'},
+  {id:'tentempies',name:'Tentempies',emoji:'[T]'}
+];
+
+const DIAS_SHORT = ['Dom','Lun','Mar','Mi\u00e9','Jue','Vie','S\u00e1b'];
+
+const ALIMENTOS = [
+  // BEBIDAS SIN ALCOHOL
+  {n:'Agua',q:'',u:'',pRef:0,pBase:0,c:'Bebidas'},
+  {n:'Gaseosa',q:'',u:'',pRef:0,pBase:0,c:'Bebidas'},
+  {n:'Caf\u00e9 solo',q:'',u:'',pRef:0,pBase:0,c:'Bebidas'},
+  {n:'Infusiones / t\u00e9',q:'',u:'',pRef:0,pBase:0,c:'Bebidas'},
+  {n:'Caf\u00e9 capuccino / cortado',q:'taza peque\u00f1a',u:'ud',pRef:1,pBase:1,c:'Bebidas'},
+  {n:'Caf\u00e9 con leche entera',q:'taza peque\u00f1a',u:'ud',pRef:1,pBase:2,c:'Bebidas'},
+  {n:'Caf\u00e9 con leche entera',q:'250ml',u:'ml',pRef:250,pBase:4,c:'Bebidas'},
+  {n:'Cerveza sin alcohol',q:'250ml',u:'ml',pRef:250,pBase:3,c:'Bebidas'},
+  {n:'Cerveza sin alcohol',q:'330ml',u:'ml',pRef:330,pBase:4,c:'Bebidas'},
+  {n:'Cerveza 0,0%',q:'250ml',u:'ml',pRef:250,pBase:3,c:'Bebidas'},
+  {n:'Cerveza 0,0% con lim\u00f3n',q:'330ml',u:'ml',pRef:330,pBase:2,c:'Bebidas'},
+  {n:'Chocolate a la taza',q:'100ml',u:'ml',pRef:100,pBase:5,c:'Bebidas'},
+  {n:'Horchata de chufa',q:'200ml',u:'ml',pRef:200,pBase:8,c:'Bebidas'},
+  {n:'Mosto de uva',q:'200ml',u:'ml',pRef:200,pBase:4,c:'Bebidas'},
+  {n:'N\u00e9ctar de melocot\u00f3n',q:'200ml',u:'ml',pRef:200,pBase:5,c:'Bebidas'},
+  {n:'N\u00e9ctar de naranja',q:'200ml',u:'ml',pRef:200,pBase:5,c:'Bebidas'},
+  {n:'N\u00e9ctar de pi\u00f1a',q:'200ml',u:'ml',pRef:200,pBase:6,c:'Bebidas'},
+  {n:'N\u00e9ctar sin az\u00facar melocot\u00f3n',q:'200ml',u:'ml',pRef:200,pBase:2,c:'Bebidas'},
+  {n:'N\u00e9ctar sin az\u00facar naranja',q:'200ml',u:'ml',pRef:200,pBase:2,c:'Bebidas'},
+  {n:'Refresco de t\u00e9 al lim\u00f3n',q:'200ml',u:'ml',pRef:200,pBase:4,c:'Bebidas'},
+  {n:'Refresco con az\u00facar',q:'200ml',u:'ml',pRef:200,pBase:5,c:'Bebidas'},
+  {n:'Refresco con az\u00facar',q:'330ml',u:'ml',pRef:330,pBase:9,c:'Bebidas'},
+  {n:'Refresco sin az\u00facar / zero',q:'330ml',u:'ml',pRef:330,pBase:0,c:'Bebidas'},
+  {n:'Sidra dulce',q:'200ml',u:'ml',pRef:200,pBase:2,c:'Bebidas'},
+  {n:'T\u00f3nica',q:'200ml',u:'ml',pRef:200,pBase:5,c:'Bebidas'},
+  {n:'T\u00f3nica',q:'330ml',u:'ml',pRef:330,pBase:8,c:'Bebidas'},
+  {n:'Tinto de verano 0,0% sin az\u00facar',q:'200ml',u:'ml',pRef:200,pBase:2,c:'Bebidas'},
+  {n:'Zumo naranja natural',q:'200ml',u:'ml',pRef:200,pBase:5,c:'Bebidas'},
+  {n:'Zumo envasado manzana',q:'200ml',u:'ml',pRef:200,pBase:6,c:'Bebidas'},
+  {n:'Zumo envasado naranja',q:'200ml',u:'ml',pRef:200,pBase:5,c:'Bebidas'},
+  {n:'Zumo envasado pi\u00f1a',q:'200ml',u:'ml',pRef:200,pBase:6,c:'Bebidas'},
+  {n:'Zumo envasado tomate',q:'200ml',u:'ml',pRef:200,pBase:2,c:'Bebidas'},
+  {n:'Zumo envasado uva',q:'200ml',u:'ml',pRef:200,pBase:8,c:'Bebidas'},
+  {n:'Zumo envasado zanahoria',q:'200ml',u:'ml',pRef:200,pBase:3,c:'Bebidas'},
+  {n:'Bebida de arroz',q:'200ml',u:'ml',pRef:200,pBase:5,c:'Bebidas'},
+  {n:'Bebida de avena',q:'200ml',u:'ml',pRef:200,pBase:4,c:'Bebidas'},
+  {n:'Bebida de avena sin az\u00facar',q:'100ml',u:'ml',pRef:100,pBase:1,c:'Bebidas'},
+  {n:'Bebida de soja',q:'200ml',u:'ml',pRef:200,pBase:3,c:'Bebidas'},
+  {n:'Bebida de soja light',q:'200ml',u:'ml',pRef:200,pBase:2,c:'Bebidas'},
+  {n:'Bebida de almendra',q:'200ml',u:'ml',pRef:200,pBase:2,c:'Bebidas'},
+  {n:'Bebida de almendra sin az\u00facar',q:'200ml',u:'ml',pRef:200,pBase:1,c:'Bebidas'},
+  {n:'Batido de cacao',q:'200ml',u:'ml',pRef:200,pBase:9,c:'Bebidas'},
+  {n:'Gazpacho brick',q:'100ml',u:'ml',pRef:100,pBase:2,c:'Bebidas'},
+  {n:'Salmorejo brick',q:'100ml',u:'ml',pRef:100,pBase:4,c:'Bebidas'},
+  // BEBIDAS EN POLVO
+  {n:'Cola Cao / similar',q:'10g',u:'g',pRef:10,pBase:2,c:'Bebidas'},
+  {n:'Cacao puro',q:'10g',u:'g',pRef:10,pBase:1,c:'Bebidas'},
+  {n:'Caf\u00e9 cappuccino soluble',q:'12g',u:'g',pRef:12,pBase:3,c:'Bebidas'},
+  // ALCOHOL
+  {n:'Aguardiente',q:'40ml',u:'ml',pRef:40,pBase:7,c:'Alcohol'},
+  {n:'Cava',q:'120ml',u:'ml',pRef:120,pBase:4,c:'Alcohol'},
+  {n:'Cerveza light',q:'250ml',u:'ml',pRef:250,pBase:3,c:'Alcohol'},
+  {n:'Cerveza light',q:'330ml',u:'ml',pRef:330,pBase:4,c:'Alcohol'},
+  {n:'Cerveza oscura 8-9\u00b0',q:'250ml',u:'ml',pRef:250,pBase:7,c:'Alcohol'},
+  {n:'Cerveza rubia 4-5\u00b0',q:'330ml',u:'ml',pRef:330,pBase:5,c:'Alcohol'},
+  {n:'Cerveza con lim\u00f3n',q:'330ml',u:'ml',pRef:330,pBase:7,c:'Alcohol'},
+  {n:'Champ\u00e1n',q:'120ml',u:'ml',pRef:120,pBase:4,c:'Alcohol'},
+  {n:'Cointreau',q:'40ml',u:'ml',pRef:40,pBase:4,c:'Alcohol'},
+  {n:'Co\u00f1ac',q:'40ml',u:'ml',pRef:40,pBase:3,c:'Alcohol'},
+  {n:'Crema de whisky',q:'40ml',u:'ml',pRef:40,pBase:6,c:'Alcohol'},
+  {n:'Ginebra',q:'40ml',u:'ml',pRef:40,pBase:3,c:'Alcohol'},
+  {n:'Licor de frutas',q:'40ml',u:'ml',pRef:40,pBase:5,c:'Alcohol'},
+  {n:'Ron',q:'40ml',u:'ml',pRef:40,pBase:3,c:'Alcohol'},
+  {n:'Sangr\u00eda',q:'120ml',u:'ml',pRef:120,pBase:3,c:'Alcohol'},
+  {n:'Sidra asturiana',q:'120ml',u:'ml',pRef:120,pBase:2,c:'Alcohol'},
+  {n:'Tequila',q:'40ml',u:'ml',pRef:40,pBase:4,c:'Alcohol'},
+  {n:'Tinto de verano',q:'200ml',u:'ml',pRef:200,pBase:4,c:'Alcohol'},
+  {n:'Vermut',q:'120ml',u:'ml',pRef:120,pBase:8,c:'Alcohol'},
+  {n:'Vino blanco',q:'120ml',u:'ml',pRef:120,pBase:4,c:'Alcohol'},
+  {n:'Vino tinto',q:'120ml',u:'ml',pRef:120,pBase:4,c:'Alcohol'},
+  {n:'Vino rosado',q:'120ml',u:'ml',pRef:120,pBase:4,c:'Alcohol'},
+  {n:'Vino lambrusco',q:'120ml',u:'ml',pRef:120,pBase:4,c:'Alcohol'},
+  {n:'Vino moscatel',q:'120ml',u:'ml',pRef:120,pBase:7,c:'Alcohol'},
+  {n:'Vodka',q:'40ml',u:'ml',pRef:40,pBase:3,c:'Alcohol'},
+  {n:'Whisky',q:'40ml',u:'ml',pRef:40,pBase:3,c:'Alcohol'},
+  // SALSAS Y DIPS
+  {n:'Alioli',q:'20g',u:'g',pRef:20,pBase:6,c:'Salsas y condimentos'},
+  {n:'Chimichurri',q:'25g',u:'g',pRef:25,pBase:2,c:'Salsas y condimentos'},
+  {n:'Guacamole dip',q:'20g',u:'g',pRef:20,pBase:1,c:'Salsas y condimentos'},
+  {n:'Ketchup light',q:'60g',u:'g',pRef:60,pBase:1,c:'Salsas y condimentos'},
+  {n:'Ketchup normal',q:'20g',u:'g',pRef:20,pBase:1,c:'Salsas y condimentos'},
+  {n:'Mayonesa normal',q:'10g',u:'g',pRef:10,pBase:2,c:'Salsas y condimentos'},
+  {n:'Mayonesa light',q:'10g',u:'g',pRef:10,pBase:1,c:'Salsas y condimentos'},
+  {n:'Mostaza',q:'',u:'',pRef:0,pBase:0,c:'Salsas y condimentos'},
+  {n:'Pisto (caja)',q:'100g',u:'g',pRef:100,pBase:3,c:'Salsas y condimentos'},
+  {n:'Salsa 4 quesos',q:'20g',u:'g',pRef:20,pBase:2,c:'Salsas y condimentos'},
+  {n:'Salsa agridulce',q:'20g',u:'g',pRef:20,pBase:1,c:'Salsas y condimentos'},
+  {n:'Salsa barbacoa',q:'40g',u:'g',pRef:40,pBase:1,c:'Salsas y condimentos'},
+  {n:'Salsa bechamel',q:'20g',u:'g',pRef:20,pBase:1,c:'Salsas y condimentos'},
+  {n:'Salsa carbonara',q:'20g',u:'g',pRef:20,pBase:3,c:'Salsas y condimentos'},
+  {n:'Salsa c\u00e9sar',q:'20g',u:'g',pRef:20,pBase:3,c:'Salsas y condimentos'},
+  {n:'Salsa holandesa',q:'20g',u:'g',pRef:20,pBase:3,c:'Salsas y condimentos'},
+  {n:'Salsa mexicana',q:'100g',u:'g',pRef:100,pBase:2,c:'Salsas y condimentos'},
+  {n:'Salsa napolitana',q:'40g',u:'g',pRef:40,pBase:1,c:'Salsas y condimentos'},
+  {n:'Salsa pesto',q:'20g',u:'g',pRef:20,pBase:3,c:'Salsas y condimentos'},
+  {n:'Salsa rosa',q:'20g',u:'g',pRef:20,pBase:2,c:'Salsas y condimentos'},
+  {n:'Salsa roquefort',q:'20g',u:'g',pRef:20,pBase:3,c:'Salsas y condimentos'},
+  {n:'Salsa t\u00e1rtara',q:'20g',u:'g',pRef:20,pBase:3,c:'Salsas y condimentos'},
+  {n:'Salsa tsatsiki',q:'20g',u:'g',pRef:20,pBase:2,c:'Salsas y condimentos'},
+  {n:'Salsa de yogur',q:'20g',u:'g',pRef:20,pBase:2,c:'Salsas y condimentos'},
+  {n:'Sofrito (fritada)',q:'50g',u:'g',pRef:50,pBase:2,c:'Salsas y condimentos'},
+  {n:'Tomate frito',q:'100g',u:'g',pRef:100,pBase:4,c:'Salsas y condimentos'},
+  {n:'Tomate frito sin az\u00facar',q:'100g',u:'g',pRef:100,pBase:2,c:'Salsas y condimentos'},
+  {n:'Vinagreta',q:'20ml',u:'ml',pRef:20,pBase:3,c:'Salsas y condimentos'},
+  {n:'Vinagreta light',q:'20ml',u:'ml',pRef:20,pBase:2,c:'Salsas y condimentos'},
+  {n:'Vinagre',q:'',u:'',pRef:0,pBase:0,c:'Salsas y condimentos'},
+  {n:'Tabasco',q:'',u:'',pRef:0,pBase:0,c:'Salsas y condimentos'},
+  // CONDIMENTOS
+  {n:'Az\u00facar blanco o moreno',q:'1 cucharadita (5g)',u:'cta',pRef:1,pBase:1,c:'Salsas y condimentos'},
+  {n:'Az\u00facar blanco o moreno',q:'1 cucharada (15g)',u:'cda',pRef:1,pBase:4,c:'Salsas y condimentos'},
+  {n:'Especias (todo tipo)',q:'',u:'',pRef:0,pBase:0,c:'Salsas y condimentos'},
+  {n:'Edulcorante',q:'',u:'',pRef:0,pBase:0,c:'Salsas y condimentos'},
+  {n:'Sal',q:'',u:'',pRef:0,pBase:0,c:'Salsas y condimentos'},
+  {n:'Hierbas arom\u00e1ticas',q:'',u:'',pRef:0,pBase:0,c:'Salsas y condimentos'},
+  {n:'Harina (todo tipo)',q:'10g',u:'g',pRef:10,pBase:1,c:'Salsas y condimentos'},
+  {n:'Pan rallado',q:'10g',u:'g',pRef:10,pBase:1,c:'Salsas y condimentos'},
+  {n:'Levadura polvo',q:'20g',u:'g',pRef:20,pBase:1,c:'Salsas y condimentos'},
+  {n:'Caldo carne concentrado',q:'48g',u:'g',pRef:48,pBase:1,c:'Salsas y condimentos'},
+  {n:'Cebolla frita crujiente',q:'20g',u:'g',pRef:20,pBase:5,c:'Salsas y condimentos'},
+  {n:'Concentrado de tomate',q:'18g',u:'g',pRef:18,pBase:1,c:'Salsas y condimentos'},
+  {n:'Miso',q:'30g',u:'g',pRef:30,pBase:1,c:'Salsas y condimentos'},
+  {n:'Crema de vinagre bals\u00e1mico',q:'15ml',u:'ml',pRef:15,pBase:1,c:'Salsas y condimentos'},
+  {n:'Salsa de soja 100%',q:'100ml',u:'ml',pRef:100,pBase:0,c:'Salsas y condimentos'},
+  {n:'Salsa teriyaki',q:'15ml',u:'ml',pRef:15,pBase:2,c:'Salsas y condimentos'},
+  {n:'Pasta wasabi',q:'15g',u:'g',pRef:15,pBase:1,c:'Salsas y condimentos'},
+  // L\u00c1CTEOS
+  {n:'Leche desnatada',q:'100ml',u:'ml',pRef:100,pBase:1,c:'L\u00e1cteos'},
+  {n:'Leche desnatada',q:'250ml',u:'ml',pRef:250,pBase:3,c:'L\u00e1cteos'},
+  {n:'Leche semidesnatada',q:'100ml',u:'ml',pRef:100,pBase:2,c:'L\u00e1cteos'},
+  {n:'Leche semidesnatada',q:'250ml',u:'ml',pRef:250,pBase:5,c:'L\u00e1cteos'},
+  {n:'Leche entera',q:'100ml',u:'ml',pRef:100,pBase:3,c:'L\u00e1cteos'},
+  {n:'Leche entera',q:'250ml',u:'ml',pRef:250,pBase:7,c:'L\u00e1cteos'},
+  {n:'Leche condensada desnatada',q:'15g',u:'g',pRef:15,pBase:2,c:'L\u00e1cteos'},
+  {n:'Leche condensada entera',q:'15g',u:'g',pRef:15,pBase:3,c:'L\u00e1cteos'},
+  {n:'Leche de cabra',q:'100ml',u:'ml',pRef:100,pBase:3,c:'L\u00e1cteos'},
+  {n:'Leche de coco normal',q:'100g',u:'g',pRef:100,pBase:12,c:'L\u00e1cteos'},
+  {n:'Leche de coco light',q:'100g',u:'g',pRef:100,pBase:7,c:'L\u00e1cteos'},
+  {n:'Leche de oveja',q:'100ml',u:'ml',pRef:100,pBase:4,c:'L\u00e1cteos'},
+  {n:'Leche evaporada (Ideal)',q:'100g',u:'g',pRef:100,pBase:5,c:'L\u00e1cteos'},
+  {n:'Leche fermentada desnatada (Actimel)',q:'100ml',u:'ml',pRef:100,pBase:2,c:'L\u00e1cteos'},
+  {n:'Nata 5% MG',q:'100g',u:'g',pRef:100,pBase:5,c:'L\u00e1cteos'},
+  {n:'Nata 18% MG',q:'100g',u:'g',pRef:100,pBase:8,c:'L\u00e1cteos'},
+  {n:'Nata 35% MG (montar)',q:'100g',u:'g',pRef:100,pBase:16,c:'L\u00e1cteos'},
+  {n:'Nata montada',q:'1 cucharada (10g)',u:'cda',pRef:1,pBase:2,c:'L\u00e1cteos'},
+  {n:'Nata agria / fresca',q:'25g',u:'g',pRef:25,pBase:6,c:'L\u00e1cteos'},
+  {n:'Crema de soja',q:'100g',u:'g',pRef:100,pBase:5,c:'L\u00e1cteos'},
+  // POSTRES Y YOGURES
+  {n:'Arroz con leche',q:'125g',u:'g',pRef:125,pBase:8,c:'L\u00e1cteos'},
+  {n:'Cuajada',q:'125g',u:'g',pRef:125,pBase:5,c:'L\u00e1cteos'},
+  {n:'Flan de huevo',q:'100g',u:'g',pRef:100,pBase:7,c:'L\u00e1cteos'},
+  {n:'Flan de vainilla',q:'100g',u:'g',pRef:100,pBase:5,c:'L\u00e1cteos'},
+  {n:'Flan sin az\u00facar',q:'100g',u:'g',pRef:100,pBase:2,c:'L\u00e1cteos'},
+  {n:'Gelatina sin az\u00facar preparada',q:'125g',u:'g',pRef:125,pBase:0,c:'L\u00e1cteos'},
+  {n:'Gelatina preparada',q:'100g',u:'g',pRef:100,pBase:4,c:'L\u00e1cteos'},
+  {n:'K\u00e9fir',q:'100g',u:'g',pRef:100,pBase:3,c:'L\u00e1cteos'},
+  {n:'Mousse de chocolate envasada',q:'75g',u:'g',pRef:75,pBase:7,c:'L\u00e1cteos'},
+  {n:'Natillas chocolate o vainilla',q:'130g',u:'g',pRef:130,pBase:8,c:'L\u00e1cteos'},
+  {n:'Natillas sin az\u00facar',q:'130g',u:'g',pRef:130,pBase:4,c:'L\u00e1cteos'},
+  {n:'Petit suisse natural',q:'55g',u:'g',pRef:55,pBase:3,c:'L\u00e1cteos'},
+  {n:'Tiramis\u00fa',q:'90g',u:'g',pRef:90,pBase:10,c:'L\u00e1cteos'},
+  {n:'Yogur desnatado natural',q:'125g',u:'g',pRef:125,pBase:2,c:'L\u00e1cteos'},
+  {n:'Yogur desnatado con frutas',q:'125g',u:'g',pRef:125,pBase:2,c:'L\u00e1cteos'},
+  {n:'Yogur entero natural',q:'125g',u:'g',pRef:125,pBase:3,c:'L\u00e1cteos'},
+  {n:'Yogur entero con frutas',q:'125g',u:'g',pRef:125,pBase:6,c:'L\u00e1cteos'},
+  {n:'Yogur griego natural',q:'125g',u:'g',pRef:125,pBase:8,c:'L\u00e1cteos'},
+  {n:'Yogur griego desnatado',q:'100g',u:'g',pRef:100,pBase:2,c:'L\u00e1cteos'},
+  {n:'Yogur l\u00edquido con frutas',q:'100g',u:'g',pRef:100,pBase:4,c:'L\u00e1cteos'},
+  {n:'Yogur l\u00edquido azucarado',q:'100g',u:'g',pRef:100,pBase:3,c:'L\u00e1cteos'},
+  {n:'Yogur l\u00edquido desnatado',q:'100g',u:'g',pRef:100,pBase:2,c:'L\u00e1cteos'},
+  {n:'Yogur prote\u00ednas desnatado natural',q:'125g',u:'g',pRef:125,pBase:1,c:'L\u00e1cteos'},
+  {n:'Yogur prote\u00ednas sabores',q:'125g',u:'g',pRef:125,pBase:2,c:'L\u00e1cteos'},
+  {n:'Yogur prote\u00ednas chocolate',q:'125g',u:'g',pRef:125,pBase:3,c:'L\u00e1cteos'},
+  {n:'Yogur de soja sin az\u00facar',q:'100g',u:'g',pRef:100,pBase:1,c:'L\u00e1cteos'},
+  {n:'Yogur de soja con frutas',q:'100g',u:'g',pRef:100,pBase:3,c:'L\u00e1cteos'},
+  // HELADOS
+  {n:'Helado bola mediana',q:'60g',u:'g',pRef:60,pBase:7,c:'L\u00e1cteos'},
+  {n:'Polo',q:'90g',u:'g',pRef:90,pBase:7,c:'L\u00e1cteos'},
+  {n:'S\u00e1ndwich de nata',q:'100g',u:'g',pRef:100,pBase:13,c:'L\u00e1cteos'},
+  {n:'Magnum',q:'1 ud',u:'ud',pRef:1,pBase:14,c:'L\u00e1cteos'},
+  {n:'Cono nata y chocolate',q:'70g',u:'g',pRef:70,pBase:9,c:'L\u00e1cteos'},
+  // CEREALES
+  {n:'Arroz inflado sin az\u00facar',q:'30g',u:'g',pRef:30,pBase:3,c:'Pan y cereales'},
+  {n:'Arroz inflado chocolateado',q:'30g',u:'g',pRef:30,pBase:4,c:'Pan y cereales'},
+  {n:'Barrita de cereales con chocolate',q:'20g',u:'g',pRef:20,pBase:4,c:'Pan y cereales'},
+  {n:'All Bran',q:'30g',u:'g',pRef:30,pBase:3,c:'Pan y cereales'},
+  {n:'Cereales de ma\u00edz sin az\u00facar',q:'30g',u:'g',pRef:30,pBase:3,c:'Pan y cereales'},
+  {n:'Cereales de ma\u00edz con az\u00facar',q:'30g',u:'g',pRef:30,pBase:4,c:'Pan y cereales'},
+  {n:'Cereales de trigo sin az\u00facar',q:'30g',u:'g',pRef:30,pBase:3,c:'Pan y cereales'},
+  {n:'Copos de avena',q:'25g',u:'g',pRef:25,pBase:2,c:'Pan y cereales'},
+  {n:'Copos de cebada',q:'25g',u:'g',pRef:25,pBase:2,c:'Pan y cereales'},
+  {n:'Copos de centeno',q:'25g',u:'g',pRef:25,pBase:2,c:'Pan y cereales'},
+  {n:'Muesli sin az\u00facar',q:'30g',u:'g',pRef:30,pBase:4,c:'Pan y cereales'},
+  {n:'Muesli crujiente con frutas',q:'30g',u:'g',pRef:30,pBase:5,c:'Pan y cereales'},
+  {n:'Muesli frutos secos o chocolate',q:'30g',u:'g',pRef:30,pBase:5,c:'Pan y cereales'},
+  // PAN
+  {n:'Pan blanco de barra',q:'50g',u:'g',pRef:50,pBase:4,c:'Pan y cereales'},
+  {n:'Pan integral',q:'50g',u:'g',pRef:50,pBase:4,c:'Pan y cereales'},
+  {n:'Pan integral puro',q:'50g',u:'g',pRef:50,pBase:3,c:'Pan y cereales'},
+  {n:'Pan de centeno puro',q:'50g',u:'g',pRef:50,pBase:3,c:'Pan y cereales'},
+  {n:'Pan de centeno y trigo',q:'50g',u:'g',pRef:50,pBase:4,c:'Pan y cereales'},
+  {n:'Pan chapata',q:'50g',u:'g',pRef:50,pBase:4,c:'Pan y cereales'},
+  {n:'Pan 5 cereales',q:'50g',u:'g',pRef:50,pBase:4,c:'Pan y cereales'},
+  {n:'Pan con nueces o pasas',q:'50g',u:'g',pRef:50,pBase:6,c:'Pan y cereales'},
+  {n:'Pan de hamburguesa',q:'55g',u:'g',pRef:55,pBase:4,c:'Pan y cereales'},
+  {n:'Pan de molde normal o integral',q:'30g',u:'g',pRef:30,pBase:2,c:'Pan y cereales'},
+  {n:'Pan de molde con pipas',q:'30g',u:'g',pRef:30,pBase:4,c:'Pan y cereales'},
+  {n:'Pan pita cl\u00e1sico',q:'50g',u:'g',pRef:50,pBase:4,c:'Pan y cereales'},
+  {n:'Pan pay\u00e9s',q:'50g',u:'g',pRef:50,pBase:4,c:'Pan y cereales'},
+  {n:'Pan sin gluten barra blanco',q:'50g',u:'g',pRef:50,pBase:4,c:'Pan y cereales'},
+  {n:'Biscote',q:'10g',u:'g',pRef:10,pBase:1,c:'Pan y cereales'},
+  {n:'Cracker',q:'6g',u:'g',pRef:6,pBase:1,c:'Pan y cereales'},
+  {n:'Rega\u00f1\u00e1 artesana',q:'10g',u:'g',pRef:10,pBase:1,c:'Pan y cereales'},
+  {n:'Tortita de arroz o ma\u00edz',q:'10g',u:'g',pRef:10,pBase:1,c:'Pan y cereales'},
+  {n:'Tipo wasa',q:'10g',u:'g',pRef:10,pBase:1,c:'Pan y cereales'},
+  {n:'Thins',q:'39g',u:'g',pRef:39,pBase:3,c:'Pan y cereales'},
+  {n:'Picatostes',q:'25g',u:'g',pRef:25,pBase:2,c:'Pan y cereales'},
+  {n:'Bagel',q:'75g',u:'g',pRef:75,pBase:7,c:'Pan y cereales'},
+  {n:'Fajita de trigo cl\u00e1sica',q:'40g',u:'g',pRef:40,pBase:5,c:'Pan y cereales'},
+  {n:'Fajita integral',q:'40g',u:'g',pRef:40,pBase:4,c:'Pan y cereales'},
+  {n:'Masa pizza supermercado',q:'100g',u:'g',pRef:100,pBase:8,c:'Pan y cereales'},
+  {n:'Masa pizza M\u00e1sQdieta',q:'1 base',u:'ud',pRef:1,pBase:10,c:'Pan y cereales'},
+  // QUESOS
+  {n:'Queso fresco batido 0% MG',q:'100g',u:'g',pRef:100,pBase:1,c:'Quesos'},
+  {n:'Queso fresco de Burgos cl\u00e1sico',q:'30g',u:'g',pRef:30,pBase:2,c:'Quesos'},
+  {n:'Queso fresco de Burgos 0% MG',q:'50g',u:'g',pRef:50,pBase:1,c:'Quesos'},
+  {n:'Queso de untar normal',q:'30g',u:'g',pRef:30,pBase:3,c:'Quesos'},
+  {n:'Queso de untar light',q:'30g',u:'g',pRef:30,pBase:2,c:'Quesos'},
+  {n:'Queso de untar 0% MG',q:'60g',u:'g',pRef:60,pBase:1,c:'Quesos'},
+  {n:'Queso Afuega\'l pitu',q:'50g',u:'g',pRef:50,pBase:5,c:'Quesos'},
+  {n:'Queso azul / cabrales',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso bola',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso brie',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso burrata',q:'125g',u:'g',pRef:125,pBase:14,c:'Quesos'},
+  {n:'Queso camembert',q:'30g',u:'g',pRef:30,pBase:3,c:'Quesos'},
+  {n:'Queso castellano',q:'30g',u:'g',pRef:30,pBase:6,c:'Quesos'},
+  {n:'Queso cheddar',q:'30g',u:'g',pRef:30,pBase:5,c:'Quesos'},
+  {n:'Queso de cabra curado',q:'30g',u:'g',pRef:30,pBase:6,c:'Quesos'},
+  {n:'Queso de cabra rulo',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso de cabra fresco',q:'30g',u:'g',pRef:30,pBase:3,c:'Quesos'},
+  {n:'Queso edam cl\u00e1sico',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso edam light',q:'30g',u:'g',pRef:30,pBase:2,c:'Quesos'},
+  {n:'Queso emmental cl\u00e1sico',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso emmental light',q:'30g',u:'g',pRef:30,pBase:2,c:'Quesos'},
+  {n:'Queso feta',q:'30g',u:'g',pRef:30,pBase:3,c:'Quesos'},
+  {n:'Queso fondue',q:'30g',u:'g',pRef:30,pBase:2,c:'Quesos'},
+  {n:'Queso fundido en lonchas',q:'18g',u:'g',pRef:18,pBase:2,c:'Quesos'},
+  {n:'Queso fundido en lonchas light',q:'18g',u:'g',pRef:18,pBase:1,c:'Quesos'},
+  {n:'Queso gouda',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso gorgonzola',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso gruyere cl\u00e1sico',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso gruyere light',q:'30g',u:'g',pRef:30,pBase:2,c:'Quesos'},
+  {n:'Queso havarti cl\u00e1sico',q:'30g',u:'g',pRef:30,pBase:5,c:'Quesos'},
+  {n:'Queso havarti light',q:'30g',u:'g',pRef:30,pBase:3,c:'Quesos'},
+  {n:'Queso idiaz\u00e1bal',q:'30g',u:'g',pRef:30,pBase:5,c:'Quesos'},
+  {n:'Queso maasdam cl\u00e1sico',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso manchego curado',q:'30g',u:'g',pRef:30,pBase:5,c:'Quesos'},
+  {n:'Queso manchego en aceite',q:'30g',u:'g',pRef:30,pBase:5,c:'Quesos'},
+  {n:'Queso manchego semicurado',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso mascarpone',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Mozzarella cl\u00e1sica',q:'30g',u:'g',pRef:30,pBase:2,c:'Quesos'},
+  {n:'Mozzarella light',q:'30g',u:'g',pRef:30,pBase:1,c:'Quesos'},
+  {n:'Parmesano',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Parmesano rayado',q:'8g',u:'g',pRef:8,pBase:1,c:'Quesos'},
+  {n:'Provolone',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Quark normal',q:'20g',u:'g',pRef:20,pBase:1,c:'Quesos'},
+  {n:'Quark light',q:'45g',u:'g',pRef:45,pBase:1,c:'Quesos'},
+  {n:'Quesito normal',q:'15g',u:'g',pRef:15,pBase:2,c:'Quesos'},
+  {n:'Quesito light',q:'15g',u:'g',pRef:15,pBase:1,c:'Quesos'},
+  {n:'Queso proteico',q:'30g',u:'g',pRef:30,pBase:1,c:'Quesos'},
+  {n:'Raclette',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  {n:'Queso rallado',q:'15g',u:'g',pRef:15,pBase:2,c:'Quesos'},
+  {n:'Queso rallado light',q:'15g',u:'g',pRef:15,pBase:1,c:'Quesos'},
+  {n:'Reques\u00f3n normal',q:'30g',u:'g',pRef:30,pBase:1,c:'Quesos'},
+  {n:'Reques\u00f3n 0% MG',q:'100g',u:'g',pRef:100,pBase:1,c:'Quesos'},
+  {n:'Ricotta',q:'30g',u:'g',pRef:30,pBase:2,c:'Quesos'},
+  {n:'Roquefort',q:'30g',u:'g',pRef:30,pBase:4,c:'Quesos'},
+  // HUEVOS
+  {n:'Huevo mediano',q:'1 ud',u:'ud',pRef:1,pBase:2,c:'Huevos'},
+  {n:'Huevo grande',q:'1 ud',u:'ud',pRef:1,pBase:3,c:'Huevos'},
+  {n:'Clara de huevo',q:'200g',u:'g',pRef:200,pBase:1,c:'Huevos'},
+  {n:'Yema de huevo',q:'20g',u:'g',pRef:20,pBase:1,c:'Huevos'},
+  {n:'Huevo de codorniz',q:'15g',u:'g',pRef:15,pBase:1,c:'Huevos'},
+  {n:'Huevo hilado',q:'25g',u:'g',pRef:25,pBase:4,c:'Huevos'},
+  // CARNES - BUEY / VACA
+  {n:'Filete de buey/vaca',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Carne magra buey/vaca',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Carne grasa buey/vaca',q:'100g',u:'g',pRef:100,pBase:7,c:'Carnes'},
+  {n:'Entrecot graso',q:'190g',u:'g',pRef:190,pBase:16,c:'Carnes'},
+  {n:'Solomillo de buey',q:'100g',u:'g',pRef:100,pBase:4,c:'Carnes'},
+  {n:'Redondo de vaca',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'H\u00edgado de vaca',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  // CERDO
+  {n:'Cerdo carne magra',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Cerdo carne picada',q:'100g',u:'g',pRef:100,pBase:9,c:'Carnes'},
+  {n:'Cerdo lomo',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Cerdo secreto',q:'100g',u:'g',pRef:100,pBase:6,c:'Carnes'},
+  {n:'Cerdo solomillo',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Cerdo chuleta',q:'100g',u:'g',pRef:100,pBase:11,c:'Carnes'},
+  {n:'Cerdo costilla sin hueso',q:'100g',u:'g',pRef:100,pBase:9,c:'Carnes'},
+  {n:'Cerdo costilla con hueso',q:'100g',u:'g',pRef:100,pBase:7,c:'Carnes'},
+  {n:'Cerdo carrillera',q:'100g',u:'g',pRef:100,pBase:5,c:'Carnes'},
+  {n:'Cerdo codillo asado envasado',q:'100g',u:'g',pRef:100,pBase:6,c:'Carnes'},
+  {n:'Cerdo h\u00edgado',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Cerdo manitas',q:'1 ud',u:'ud',pRef:1,pBase:10,c:'Carnes'},
+  {n:'Cerdo oreja',q:'100g',u:'g',pRef:100,pBase:6,c:'Carnes'},
+  {n:'Morcilla cruda',q:'50g',u:'g',pRef:50,pBase:6,c:'Carnes'},
+  {n:'Butifarra',q:'75g',u:'g',pRef:75,pBase:6,c:'Carnes'},
+  {n:'Chistorra',q:'30g',u:'g',pRef:30,pBase:6,c:'Carnes'},
+  {n:'Chorizo fresco',q:'50g',u:'g',pRef:50,pBase:6,c:'Carnes'},
+  {n:'Criollo',q:'50g',u:'g',pRef:50,pBase:6,c:'Carnes'},
+  // TERNERA
+  {n:'Ternera filete sin grasa',q:'100g',u:'g',pRef:100,pBase:1,c:'Carnes'},
+  {n:'Ternera carne picada',q:'100g',u:'g',pRef:100,pBase:5,c:'Carnes'},
+  {n:'Ternera solomillo sin grasa',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Ternera entrecot sin grasa',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Ternera morcillo',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Ternera carrillera',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Ternera h\u00edgado',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Ternera callos',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Ternera callos preparados',q:'100g',u:'g',pRef:100,pBase:4,c:'Carnes'},
+  // AVES
+  {n:'Pechuga pollo sin piel',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Muslo pollo sin piel',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Pollo entero sin piel',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Pollo ala con piel',q:'100g',u:'g',pRef:100,pBase:6,c:'Carnes'},
+  {n:'Pollo muslo con piel',q:'100g',u:'g',pRef:100,pBase:4,c:'Carnes'},
+  {n:'Pollo carne picada',q:'100g',u:'g',pRef:100,pBase:4,c:'Carnes'},
+  {n:'Pollo h\u00edgado',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Pavo entero sin piel',q:'100g',u:'g',pRef:100,pBase:1,c:'Carnes'},
+  {n:'Pavo entero con piel',q:'100g',u:'g',pRef:100,pBase:5,c:'Carnes'},
+  {n:'Pato magret',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Pato muslo sin piel',q:'100g',u:'g',pRef:100,pBase:3,c:'Carnes'},
+  {n:'Codorniz sin piel',q:'100g',u:'g',pRef:100,pBase:1,c:'Carnes'},
+  {n:'Perdiz',q:'100g',u:'g',pRef:100,pBase:1,c:'Carnes'},
+  {n:'Avestruz',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  // CAZA
+  {n:'Conejo sin hueso',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Conejo con hueso',q:'100g',u:'g',pRef:100,pBase:4,c:'Carnes'},
+  {n:'Cordero carne magra',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Cordero costilla',q:'100g',u:'g',pRef:100,pBase:10,c:'Carnes'},
+  {n:'Cordero pierna',q:'100g',u:'g',pRef:100,pBase:4,c:'Carnes'},
+  {n:'Cabrito',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  {n:'Ciervo',q:'100g',u:'g',pRef:100,pBase:1,c:'Carnes'},
+  {n:'Jabal\u00ed',q:'100g',u:'g',pRef:100,pBase:1,c:'Carnes'},
+  {n:'Liebre',q:'100g',u:'g',pRef:100,pBase:2,c:'Carnes'},
+  // PLATOS CONGELADOS / PREPARADOS
+  {n:'Arreglo paella marisco congelado',q:'100g',u:'g',pRef:100,pBase:2,c:'Preparados'},
+  {n:'Arroz congelado negro o 3 delicias',q:'100g',u:'g',pRef:100,pBase:3,c:'Preparados'},
+  {n:'Calamares a la romana',q:'100g',u:'g',pRef:100,pBase:7,c:'Preparados'},
+  {n:'Canelones de carne / espinacas',q:'100g',u:'g',pRef:100,pBase:5,c:'Preparados'},
+  {n:'Crema de verduras sin patata',q:'100g',u:'g',pRef:100,pBase:2,c:'Preparados'},
+  {n:'Crema de verduras con patata',q:'100g',u:'g',pRef:100,pBase:4,c:'Preparados'},
+  {n:'Croquetas pollo / jam\u00f3n',q:'30g',u:'g',pRef:30,pBase:2,c:'Preparados'},
+  {n:'Empanadilla',q:'90g',u:'g',pRef:90,pBase:8,c:'Preparados'},
+  {n:'Lasa\u00f1a de carne',q:'100g',u:'g',pRef:100,pBase:5,c:'Preparados'},
+  {n:'Menestra congelada',q:'100g',u:'g',pRef:100,pBase:2,c:'Preparados'},
+  {n:'Nuggets de merluza',q:'100g',u:'g',pRef:100,pBase:4,c:'Preparados'},
+  {n:'Nuggets de pollo',q:'25g',u:'g',pRef:25,pBase:2,c:'Preparados'},
+  {n:'\u00d1oquis con verduras',q:'100g',u:'g',pRef:100,pBase:4,c:'Preparados'},
+  {n:'Palitos de pescado',q:'30g',u:'g',pRef:30,pBase:1,c:'Preparados'},
+  {n:'Pizza (cualquier tipo)',q:'100g',u:'g',pRef:100,pBase:8,c:'Preparados'},
+  {n:'Pollo empanado',q:'80g',u:'g',pRef:80,pBase:7,c:'Preparados'},
+  {n:'Quinoa con verduras',q:'100g',u:'g',pRef:100,pBase:4,c:'Preparados'},
+  {n:'Risotto de champi\u00f1ones',q:'100g',u:'g',pRef:100,pBase:3,c:'Preparados'},
+  {n:'Rollito de primavera',q:'50g',u:'g',pRef:50,pBase:3,c:'Preparados'},
+  {n:'San Jacobo',q:'85g',u:'g',pRef:85,pBase:7,c:'Preparados'},
+  {n:'Tortilla preparada refrigerada',q:'100g',u:'g',pRef:100,pBase:5,c:'Preparados'},
+  {n:'Hamburguesa de ave',q:'100g',u:'g',pRef:100,pBase:4,c:'Preparados'},
+  {n:'Hamburguesa de ternera',q:'100g',u:'g',pRef:100,pBase:4,c:'Preparados'},
+  {n:'Salchicha fresca de cerdo',q:'100g',u:'g',pRef:100,pBase:7,c:'Preparados'},
+  {n:'Salchicha fresca de pollo',q:'100g',u:'g',pRef:100,pBase:3,c:'Preparados'},
+  {n:'Frankfurt de cerdo / pollo',q:'100g',u:'g',pRef:100,pBase:6,c:'Preparados'},
+  {n:'Frankfurt de pavo baja en grasa',q:'100g',u:'g',pRef:100,pBase:2,c:'Preparados'},
+  // CHARCUTER\u00cdA
+  {n:'Bacon o panceta',q:'20g',u:'g',pRef:20,pBase:3,c:'Charcuter\u00eda'},
+  {n:'Bacon o panceta',q:'50g',u:'g',pRef:50,pBase:7,c:'Charcuter\u00eda'},
+  {n:'Bacon ahumado',q:'20g',u:'g',pRef:20,pBase:2,c:'Charcuter\u00eda'},
+  {n:'Butifarra blanca',q:'15g',u:'g',pRef:15,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Cabeza de cerdo',q:'50g',u:'g',pRef:50,pBase:9,c:'Charcuter\u00eda'},
+  {n:'Cecina',q:'20g',u:'g',pRef:20,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Chorizo cerdo',q:'10g',u:'g',pRef:10,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Chorizo de pavo',q:'20g',u:'g',pRef:20,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Embutido de pechuga de pavo',q:'50g',u:'g',pRef:50,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Embutido de pechuga de pollo',q:'50g',u:'g',pRef:50,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Fuet',q:'10g',u:'g',pRef:10,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Jam\u00f3n cocido con grasa',q:'25g',u:'g',pRef:25,pBase:2,c:'Charcuter\u00eda'},
+  {n:'Jam\u00f3n cocido sin grasa',q:'40g',u:'g',pRef:40,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Jam\u00f3n curado con grasa',q:'25g',u:'g',pRef:25,pBase:2,c:'Charcuter\u00eda'},
+  {n:'Jam\u00f3n curado sin grasa',q:'20g',u:'g',pRef:20,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Jam\u00f3n de pavo',q:'50g',u:'g',pRef:50,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Jam\u00f3n de pato',q:'9g',u:'g',pRef:9,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Lac\u00f3n cocido',q:'100g',u:'g',pRef:100,pBase:4,c:'Charcuter\u00eda'},
+  {n:'Lomo embuchado',q:'10g',u:'g',pRef:10,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Longaniza',q:'10g',u:'g',pRef:10,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Morcilla cocida',q:'20g',u:'g',pRef:20,pBase:3,c:'Charcuter\u00eda'},
+  {n:'Mortadela cl\u00e1sica',q:'20g',u:'g',pRef:20,pBase:2,c:'Charcuter\u00eda'},
+  {n:'Mortadela de pavo',q:'20g',u:'g',pRef:20,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Pepperoni',q:'10g',u:'g',pRef:10,pBase:2,c:'Charcuter\u00eda'},
+  {n:'Salami',q:'15g',u:'g',pRef:15,pBase:2,c:'Charcuter\u00eda'},
+  {n:'Salchich\u00f3n cerdo',q:'10g',u:'g',pRef:10,pBase:1,c:'Charcuter\u00eda'},
+  {n:'Salchich\u00f3n de pavo',q:'15g',u:'g',pRef:15,pBase:1,c:'Charcuter\u00eda'},
+  // GRASAS
+  {n:'Aceite de oliva',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Grasas'},
+  {n:'Aceite de oliva',q:'1 cucharada',u:'cda',pRef:1,pBase:4,c:'Grasas'},
+  {n:'Aceite de girasol',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Grasas'},
+  {n:'Aceite de coco',q:'1 cucharadita',u:'cta',pRef:1,pBase:2,c:'Grasas'},
+  {n:'Aceite spray',q:'2 pulverizaciones',u:'ud',pRef:1,pBase:1,c:'Grasas'},
+  {n:'Manteca de cerdo',q:'1 cucharadita',u:'cta',pRef:1,pBase:2,c:'Grasas'},
+  {n:'Mantequilla normal',q:'1 cucharadita',u:'cta',pRef:1,pBase:2,c:'Grasas'},
+  {n:'Mantequilla light',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Grasas'},
+  {n:'Margarina normal',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Grasas'},
+  {n:'Aceite para fre\u00edr (a\u00f1adir a alimento)',q:'croqueta / empanadilla',u:'ud',pRef:1,pBase:1,c:'Grasas'},
+  {n:'Aceite para fre\u00edr (a\u00f1adir a alimento)',q:'100g patatas',u:'ud',pRef:1,pBase:6,c:'Grasas'},
+  // PESCADOS Y MARISCOS
+  {n:'Abadejo',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Acedia',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Almejas sin caparaz\u00f3n',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Anchoa en aceite',q:'23g',u:'g',pRef:23,pBase:1,c:'Pescados'},
+  {n:'Anguila',q:'100g',u:'g',pRef:100,pBase:6,c:'Pescados'},
+  {n:'Angula',q:'100g',u:'g',pRef:100,pBase:5,c:'Pescados'},
+  {n:'At\u00fan fresco',q:'100g',u:'g',pRef:100,pBase:3,c:'Pescados'},
+  {n:'At\u00fan lata al natural',q:'60g',u:'g',pRef:60,pBase:1,c:'Pescados'},
+  {n:'At\u00fan lata en aceite escurrido',q:'60g',u:'g',pRef:60,pBase:3,c:'Pescados'},
+  {n:'At\u00fan lata en escabeche',q:'75g',u:'g',pRef:75,pBase:3,c:'Pescados'},
+  {n:'Bacalao (fresco/salado/ahumado)',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Berberechos sin caparaz\u00f3n',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Besugo',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Bogavante',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Boquer\u00f3n fresco',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Boquer\u00f3n en vinagre',q:'50g',u:'g',pRef:50,pBase:1,c:'Pescados'},
+  {n:'Bonito fresco',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Bonito lata en aceite',q:'60g',u:'g',pRef:60,pBase:3,c:'Pescados'},
+  {n:'Caballa fresca',q:'100g',u:'g',pRef:100,pBase:5,c:'Pescados'},
+  {n:'Caballa lata aceite',q:'85g',u:'g',pRef:85,pBase:5,c:'Pescados'},
+  {n:'Caballa lata escabeche',q:'85g',u:'g',pRef:85,pBase:4,c:'Pescados'},
+  {n:'Cabracho',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Pastel de cabracho',q:'100g',u:'g',pRef:100,pBase:4,c:'Pescados'},
+  {n:'Calamar fresco',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Camar\u00f3n pelado',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Cangrejo sin caparaz\u00f3n',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Carabinero',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Caracol sin caparaz\u00f3n',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Caviar',q:'14g',u:'g',pRef:14,pBase:1,c:'Pescados'},
+  {n:'Caz\u00f3n',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Centollo sin caparaz\u00f3n',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Chipir\u00f3n',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Cigala',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Congrio',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Corvina',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Dorada',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Emperador / pez espada',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Gallo',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Gula',q:'100g',u:'g',pRef:100,pBase:3,c:'Pescados'},
+  {n:'Gambas sin caparaz\u00f3n',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Langosta',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Langostinos pelados',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Lenguado',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Lubina',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Mejillones sin caparaz\u00f3n',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Mejillones lata al natural',q:'55g',u:'g',pRef:55,pBase:1,c:'Pescados'},
+  {n:'Mejillones lata escabeche',q:'100g',u:'g',pRef:100,pBase:5,c:'Pescados'},
+  {n:'Melva en aceite',q:'80g',u:'g',pRef:80,pBase:3,c:'Pescados'},
+  {n:'Merluza',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Mero',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Navajas al natural',q:'60g',u:'g',pRef:60,pBase:1,c:'Pescados'},
+  {n:'N\u00e9cora',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Oricios',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Ostras',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Palometa',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Panga',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Percebes sin caparaz\u00f3n',q:'200g',u:'g',pRef:200,pBase:1,c:'Pescados'},
+  {n:'Perca',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Pescadilla',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Pulpo cocido',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Pulpo en aceite',q:'80g',u:'g',pRef:80,pBase:2,c:'Pescados'},
+  {n:'Rape',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Rodaballo',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Salm\u00f3n fresco',q:'100g',u:'g',pRef:100,pBase:4,c:'Pescados'},
+  {n:'Salm\u00f3n ahumado',q:'35g',u:'g',pRef:35,pBase:1,c:'Pescados'},
+  {n:'Salmonete',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Sardina fresca',q:'100g',u:'g',pRef:100,pBase:4,c:'Pescados'},
+  {n:'Sardina en aceite',q:'65g',u:'g',pRef:65,pBase:4,c:'Pescados'},
+  {n:'Sardina en escabeche',q:'120g',u:'g',pRef:120,pBase:4,c:'Pescados'},
+  {n:'Sardina en salsa de tomate',q:'85g',u:'g',pRef:85,pBase:6,c:'Pescados'},
+  {n:'Sargo',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Sepia',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Surimi',q:'100g',u:'g',pRef:100,pBase:2,c:'Pescados'},
+  {n:'Trucha',q:'100g',u:'g',pRef:100,pBase:3,c:'Pescados'},
+  {n:'Trucha ahumada',q:'50g',u:'g',pRef:50,pBase:1,c:'Pescados'},
+  {n:'Vieira',q:'100g',u:'g',pRef:100,pBase:1,c:'Pescados'},
+  {n:'Zamburi\u00f1as',q:'65g',u:'g',pRef:65,pBase:3,c:'Pescados'},
+  // PRODUCTOS VEGETARIANOS
+  {n:'Frankfurt de tofu',q:'40g',u:'g',pRef:40,pBase:3,c:'Vegetariano'},
+  {n:'Burger vegetal',q:'75g',u:'g',pRef:75,pBase:4,c:'Vegetariano'},
+  {n:'Seit\u00e1n',q:'100g',u:'g',pRef:100,pBase:2,c:'Vegetariano'},
+  {n:'Tofu ahumado o natural',q:'100g',u:'g',pRef:100,pBase:3,c:'Vegetariano'},
+  {n:'Levadura de cerveza',q:'15g',u:'g',pRef:15,pBase:1,c:'Vegetariano'},
+  {n:'Polen',q:'4g',u:'g',pRef:4,pBase:1,c:'Vegetariano'},
+  {n:'Salvado de avena',q:'7g',u:'g',pRef:7,pBase:1,c:'Vegetariano'},
+  {n:'Salvado de trigo',q:'20g',u:'g',pRef:20,pBase:1,c:'Vegetariano'},
+  {n:'Germen de trigo',q:'8g',u:'g',pRef:8,pBase:1,c:'Vegetariano'},
+  // FRUTOS SECOS
+  {n:'Almendra cruda / tostada',q:'5g',u:'g',pRef:5,pBase:1,c:'Frutos secos'},
+  {n:'Almendra garrapi\u00f1ada',q:'10g',u:'g',pRef:10,pBase:2,c:'Frutos secos'},
+  {n:'Anacardo crudo',q:'25g',u:'g',pRef:25,pBase:5,c:'Frutos secos'},
+  {n:'Anacardo frito',q:'25g',u:'g',pRef:25,pBase:6,c:'Frutos secos'},
+  {n:'Ar\u00e1ndano seco',q:'10g',u:'g',pRef:10,pBase:2,c:'Frutos secos'},
+  {n:'Avellana cruda o tostada',q:'5g',u:'g',pRef:5,pBase:1,c:'Frutos secos'},
+  {n:'Bayas de Goji',q:'10g',u:'g',pRef:10,pBase:1,c:'Frutos secos'},
+  {n:'Cacahuete crudo',q:'25g',u:'g',pRef:25,pBase:4,c:'Frutos secos'},
+  {n:'Cacahuete frito o con miel',q:'25g',u:'g',pRef:25,pBase:5,c:'Frutos secos'},
+  {n:'Casta\u00f1a',q:'20g',u:'g',pRef:20,pBase:1,c:'Frutos secos'},
+  {n:'Chufa',q:'50g',u:'g',pRef:50,pBase:7,c:'Frutos secos'},
+  {n:'Ciruela pasa',q:'10g',u:'g',pRef:10,pBase:1,c:'Frutos secos'},
+  {n:'Cocktail de frutos secos',q:'30g',u:'g',pRef:30,pBase:6,c:'Frutos secos'},
+  {n:'Coco seco',q:'5g',u:'g',pRef:5,pBase:2,c:'Frutos secos'},
+  {n:'D\u00e1til seco',q:'10g',u:'g',pRef:10,pBase:1,c:'Frutos secos'},
+  {n:'Higo seco',q:'10g',u:'g',pRef:10,pBase:1,c:'Frutos secos'},
+  {n:'Mango deshidratado sin az\u00facar',q:'60g',u:'g',pRef:60,pBase:4,c:'Frutos secos'},
+  {n:'Nuez sin c\u00e1scara',q:'10g',u:'g',pRef:10,pBase:1,c:'Frutos secos'},
+  {n:'Nuez de macadamia',q:'25g',u:'g',pRef:25,pBase:6,c:'Frutos secos'},
+  {n:'Nuez de pec\u00e1n',q:'5g',u:'g',pRef:5,pBase:1,c:'Frutos secos'},
+  {n:'Orej\u00f3n de melocot\u00f3n',q:'10g',u:'g',pRef:10,pBase:1,c:'Frutos secos'},
+  {n:'Pi\u00f1\u00f3n',q:'10g',u:'g',pRef:10,pBase:2,c:'Frutos secos'},
+  {n:'Pipas de calabaza peladas',q:'25g',u:'g',pRef:25,pBase:4,c:'Frutos secos'},
+  {n:'Pipas de girasol peladas',q:'10g',u:'g',pRef:10,pBase:2,c:'Frutos secos'},
+  {n:'Pistacho sin c\u00e1scara',q:'5g',u:'g',pRef:5,pBase:1,c:'Frutos secos'},
+  {n:'Pi\u00f1a deshidratada sin az\u00facar',q:'50g',u:'g',pRef:50,pBase:2,c:'Frutos secos'},
+  {n:'Pl\u00e1tano desecado',q:'25g',u:'g',pRef:25,pBase:5,c:'Frutos secos'},
+  {n:'Uvas pasas',q:'9g',u:'g',pRef:9,pBase:1,c:'Frutos secos'},
+  {n:'Crema de almendra',q:'7g',u:'g',pRef:7,pBase:1,c:'Frutos secos'},
+  {n:'Crema de cacahuete',q:'7g',u:'g',pRef:7,pBase:1,c:'Frutos secos'},
+  {n:'Semilla de ch\u00eda',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Frutos secos'},
+  {n:'Semilla de lino',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Frutos secos'},
+  {n:'Semilla de s\u00e9samo',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Frutos secos'},
+  // VERDURAS
+  {n:'Todas las verduras y hortalizas',q:'libre',u:'g',pRef:100,pBase:0,c:'Verduras y frutas'},
+  {n:'Guisantes frescos / conserva',q:'100g',u:'g',pRef:100,pBase:2,c:'Verduras y frutas'},
+  // FRUTAS
+  {n:'Todas las frutas',q:'libre',u:'g',pRef:100,pBase:0,c:'Verduras y frutas'},
+  {n:'Aguacate',q:'50g',u:'g',pRef:50,pBase:2,c:'Verduras y frutas'},
+  {n:'Coco fresco',q:'25g',u:'g',pRef:25,pBase:5,c:'Verduras y frutas'},
+  {n:'Compota',q:'100g',u:'g',pRef:100,pBase:5,c:'Verduras y frutas'},
+  {n:'Fruta confitada',q:'25g',u:'g',pRef:25,pBase:5,c:'Verduras y frutas'},
+  {n:'Guayaba en alm\u00edbar',q:'100g',u:'g',pRef:100,pBase:4,c:'Verduras y frutas'},
+  {n:'Macedonia en alm\u00edbar',q:'100g',u:'g',pRef:100,pBase:4,c:'Verduras y frutas'},
+  {n:'Macedonia en su jugo',q:'100g',u:'g',pRef:100,pBase:2,c:'Verduras y frutas'},
+  {n:'Melocot\u00f3n en alm\u00edbar',q:'60g',u:'g',pRef:60,pBase:2,c:'Verduras y frutas'},
+  {n:'Pi\u00f1a en alm\u00edbar',q:'100g',u:'g',pRef:100,pBase:4,c:'Verduras y frutas'},
+  {n:'Pi\u00f1a en su jugo',q:'100g',u:'g',pRef:100,pBase:3,c:'Verduras y frutas'},
+  {n:'Pl\u00e1tano macho',q:'100g',u:'g',pRef:100,pBase:4,c:'Verduras y frutas'},
+  // PASTA Y ARROZ
+  {n:'Pasta normal hervida',q:'100g',u:'g',pRef:100,pBase:3,c:'Pasta y arroz'},
+  {n:'Pasta normal seca',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Pasta integral hervida',q:'100g',u:'g',pRef:100,pBase:3,c:'Pasta y arroz'},
+  {n:'Pasta integral seca',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Pasta fresca cruda',q:'50g',u:'g',pRef:50,pBase:4,c:'Pasta y arroz'},
+  {n:'Pasta fresca hervida',q:'100g',u:'g',pRef:100,pBase:3,c:'Pasta y arroz'},
+  {n:'Pasta rellena jam\u00f3n / ricotta',q:'125g',u:'g',pRef:125,pBase:11,c:'Pasta y arroz'},
+  {n:'Pasta rellena de queso',q:'125g',u:'g',pRef:125,pBase:12,c:'Pasta y arroz'},
+  {n:'Pasta rellena de carne',q:'125g',u:'g',pRef:125,pBase:10,c:'Pasta y arroz'},
+  {n:'Fideos chinos de arroz secos',q:'50g',u:'g',pRef:50,pBase:6,c:'Pasta y arroz'},
+  {n:'Fideos chinos de huevo secos',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Noodles Glass',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'\u00d1oquis',q:'125g',u:'g',pRef:125,pBase:6,c:'Pasta y arroz'},
+  {n:'Pasta de arroz seca',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Pasta de ma\u00edz seca',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Para sopa',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  // ARROZ Y GRANOS
+  {n:'Arroz blanco hervido',q:'100g',u:'g',pRef:100,pBase:3,c:'Pasta y arroz'},
+  {n:'Arroz blanco seco',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Arroz integral hervido',q:'100g',u:'g',pRef:100,pBase:3,c:'Pasta y arroz'},
+  {n:'Arroz integral seco',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Arroz vasito microondas',q:'125g',u:'g',pRef:125,pBase:6,c:'Pasta y arroz'},
+  {n:'Arroz salvaje seco',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Bulgur',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Cebada en grano seca',q:'50g',u:'g',pRef:50,pBase:4,c:'Pasta y arroz'},
+  {n:'Cusc\u00fas hervido',q:'100g',u:'g',pRef:100,pBase:5,c:'Pasta y arroz'},
+  {n:'Cusc\u00fas seco',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Cusc\u00fas vasito microondas',q:'125g',u:'g',pRef:125,pBase:7,c:'Pasta y arroz'},
+  {n:'Mijo',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Polenta',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Quinoa',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  {n:'Quinoa vasito microondas',q:'125g',u:'g',pRef:125,pBase:5,c:'Pasta y arroz'},
+  {n:'S\u00e9mola de trigo hervida',q:'100g',u:'g',pRef:100,pBase:5,c:'Pasta y arroz'},
+  {n:'Trigo tierno',q:'50g',u:'g',pRef:50,pBase:5,c:'Pasta y arroz'},
+  // LEGUMBRES Y PATATA
+  {n:'Patata hervida',q:'100g',u:'g',pRef:100,pBase:2,c:'Legumbres y patata'},
+  {n:'Patata en conserva',q:'100g',u:'g',pRef:100,pBase:1,c:'Legumbres y patata'},
+  {n:'Patatas congeladas finas',q:'100g',u:'g',pRef:100,pBase:4,c:'Legumbres y patata'},
+  {n:'Patatas congeladas gajo',q:'100g',u:'g',pRef:100,pBase:5,c:'Legumbres y patata'},
+  {n:'Patatas fritas',q:'100g',u:'g',pRef:100,pBase:12,c:'Legumbres y patata'},
+  {n:'Pur\u00e9 de patatas',q:'30g',u:'g',pRef:30,pBase:3,c:'Legumbres y patata'},
+  {n:'Batata / boniato',q:'80g',u:'g',pRef:80,pBase:3,c:'Legumbres y patata'},
+  {n:'Yuca',q:'100g',u:'g',pRef:100,pBase:5,c:'Legumbres y patata'},
+  {n:'Alubia blanca hervida',q:'100g',u:'g',pRef:100,pBase:2,c:'Legumbres y patata'},
+  {n:'Alubia negra hervida',q:'100g',u:'g',pRef:100,pBase:2,c:'Legumbres y patata'},
+  {n:'Alubia pinta hervida',q:'100g',u:'g',pRef:100,pBase:2,c:'Legumbres y patata'},
+  {n:'Garbanzo hervido',q:'100g',u:'g',pRef:100,pBase:3,c:'Legumbres y patata'},
+  {n:'Garbanzo seco',q:'50g',u:'g',pRef:50,pBase:5,c:'Legumbres y patata'},
+  {n:'Hummus preparado',q:'50g',u:'g',pRef:50,pBase:5,c:'Legumbres y patata'},
+  {n:'Guisantes hervidos',q:'100g',u:'g',pRef:100,pBase:1,c:'Legumbres y patata'},
+  {n:'Habas hervidas',q:'100g',u:'g',pRef:100,pBase:1,c:'Legumbres y patata'},
+  {n:'Lentejas hervidas',q:'100g',u:'g',pRef:100,pBase:2,c:'Legumbres y patata'},
+  {n:'Lentejas secas',q:'50g',u:'g',pRef:50,pBase:4,c:'Legumbres y patata'},
+  {n:'Ma\u00edz en conserva',q:'100g',u:'g',pRef:100,pBase:4,c:'Legumbres y patata'},
+  {n:'Ma\u00edz hervido',q:'100g',u:'g',pRef:100,pBase:3,c:'Legumbres y patata'},
+  {n:'Soja hervida',q:'100g',u:'g',pRef:100,pBase:3,c:'Legumbres y patata'},
+  {n:'Soja texturizada',q:'50g',u:'g',pRef:50,pBase:4,c:'Legumbres y patata'},
+  // APERITIVOS Y SNACKS
+  {n:'Aceitunas negras',q:'4 uds (12g)',u:'ud',pRef:4,pBase:1,c:'Aperitivos'},
+  {n:'Aceitunas rellenas',q:'5 uds (20g)',u:'ud',pRef:5,pBase:1,c:'Aperitivos'},
+  {n:'Aceitunas verdes',q:'8 uds (32g)',u:'ud',pRef:8,pBase:1,c:'Aperitivos'},
+  {n:'Alcaparras',q:'',u:'',pRef:0,pBase:0,c:'Aperitivos'},
+  {n:'Altramuces',q:'50g',u:'g',pRef:50,pBase:1,c:'Aperitivos'},
+  {n:'Cortezas de cerdo',q:'50g',u:'g',pRef:50,pBase:6,c:'Aperitivos'},
+  {n:'Doritos',q:'30g',u:'g',pRef:30,pBase:6,c:'Aperitivos'},
+  {n:'Encurtidos',q:'',u:'',pRef:0,pBase:0,c:'Aperitivos'},
+  {n:'Fritos',q:'30g',u:'g',pRef:30,pBase:8,c:'Aperitivos'},
+  {n:'Galletas saladas',q:'2 uds (7g)',u:'ud',pRef:2,pBase:1,c:'Aperitivos'},
+  {n:'Gusanitos',q:'50g',u:'g',pRef:50,pBase:7,c:'Aperitivos'},
+  {n:'Kikos',q:'50g',u:'g',pRef:50,pBase:7,c:'Aperitivos'},
+  {n:'Nachos',q:'50g',u:'g',pRef:50,pBase:6,c:'Aperitivos'},
+  {n:'Palomitas',q:'50g',u:'g',pRef:50,pBase:8,c:'Aperitivos'},
+  {n:'Patatas chips',q:'50g',u:'g',pRef:50,pBase:9,c:'Aperitivos'},
+  {n:'Snack bajo en grasa',q:'30g',u:'g',pRef:30,pBase:4,c:'Aperitivos'},
+  {n:'Conos bacon',q:'30g',u:'g',pRef:30,pBase:6,c:'Aperitivos'},
+  // ALIMENTOS UNTABLES DULCES
+  {n:'Crema de cacao (Nutella o similar)',q:'10g',u:'g',pRef:10,pBase:2,c:'Untables y dulces'},
+  {n:'Crema de casta\u00f1a',q:'7g',u:'g',pRef:7,pBase:1,c:'Untables y dulces'},
+  {n:'Confitura',q:'1 cucharadita (10g)',u:'cta',pRef:1,pBase:2,c:'Untables y dulces'},
+  {n:'Confitura sin az\u00facar',q:'1 cucharadita',u:'cta',pRef:1,pBase:0,c:'Untables y dulces'},
+  {n:'Dulce de leche',q:'30g',u:'g',pRef:30,pBase:5,c:'Untables y dulces'},
+  {n:'Dulce de membrillo',q:'50g',u:'g',pRef:50,pBase:7,c:'Untables y dulces'},
+  {n:'Mermelada con az\u00facar',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Untables y dulces'},
+  {n:'Mermelada sin az\u00facar',q:'1 cucharadita',u:'cta',pRef:1,pBase:0,c:'Untables y dulces'},
+  {n:'Miel',q:'1 cucharadita',u:'cta',pRef:1,pBase:1,c:'Untables y dulces'},
+  {n:'Pure de casta\u00f1a',q:'100g',u:'g',pRef:100,pBase:4,c:'Untables y dulces'},
+  {n:'Sirope de \u00e1gave',q:'10g',u:'g',pRef:10,pBase:2,c:'Untables y dulces'},
+  {n:'Sirope de arce',q:'15ml',u:'ml',pRef:15,pBase:2,c:'Untables y dulces'},
+  {n:'Sirope de caramelo',q:'20g',u:'g',pRef:20,pBase:3,c:'Untables y dulces'},
+  {n:'Sirope de chocolate',q:'20g',u:'g',pRef:20,pBase:3,c:'Untables y dulces'},
+  // ALIMENTOS UNTABLES SALADOS
+  {n:'Foie gras',q:'25g',u:'g',pRef:25,pBase:4,c:'Untables y dulces'},
+  {n:'Mousse de ave',q:'25g',u:'g',pRef:25,pBase:3,c:'Untables y dulces'},
+  {n:'Pat\u00e9 de campa\u00f1a',q:'25g',u:'g',pRef:25,pBase:3,c:'Untables y dulces'},
+  {n:'Pat\u00e9 de h\u00edgado de cerdo',q:'25g',u:'g',pRef:25,pBase:4,c:'Untables y dulces'},
+  {n:'Pat\u00e9 light',q:'30g',u:'g',pRef:30,pBase:1,c:'Untables y dulces'},
+  {n:'Sobrasada',q:'25g',u:'g',pRef:25,pBase:6,c:'Untables y dulces'},
+  // BOLLER\u00cdA
+  {n:'Alfajor de almendra',q:'23g',u:'g',pRef:23,pBase:5,c:'Boller\u00eda'},
+  {n:'Barquillo relleno de chocolate',q:'16g',u:'g',pRef:16,pBase:3,c:'Boller\u00eda'},
+  {n:'Base de bizcocho',q:'50g',u:'g',pRef:50,pBase:9,c:'Boller\u00eda'},
+  {n:'Berlina / d\u00f3nut de panader\u00eda',q:'54g',u:'g',pRef:54,pBase:9,c:'Boller\u00eda'},
+  {n:'Berlina / d\u00f3nut envasado',q:'50g',u:'g',pRef:50,pBase:9,c:'Boller\u00eda'},
+  {n:'Berlina de chocolate',q:'75g',u:'g',pRef:75,pBase:16,c:'Boller\u00eda'},
+  {n:'Bizcocho cl\u00e1sico',q:'50g',u:'g',pRef:50,pBase:9,c:'Boller\u00eda'},
+  {n:'Bizcocho de soletilla blando',q:'12g',u:'g',pRef:12,pBase:2,c:'Boller\u00eda'},
+  {n:'Brownie',q:'50g',u:'g',pRef:50,pBase:11,c:'Boller\u00eda'},
+  {n:'Casadiella',q:'50g',u:'g',pRef:50,pBase:10,c:'Boller\u00eda'},
+  {n:'Ca\u00f1a crema / chocolate',q:'100g',u:'g',pRef:100,pBase:22,c:'Boller\u00eda'},
+  {n:'Churros',q:'70g',u:'g',pRef:70,pBase:14,c:'Boller\u00eda'},
+  {n:'Cr\u00eape',q:'30g',u:'g',pRef:30,pBase:2,c:'Boller\u00eda'},
+  {n:'Croissant de panader\u00eda',q:'30g',u:'g',pRef:30,pBase:5,c:'Boller\u00eda'},
+  {n:'Croissant de mantequilla',q:'50g',u:'g',pRef:50,pBase:8,c:'Boller\u00eda'},
+  {n:'Ensaimada',q:'35g',u:'g',pRef:35,pBase:6,c:'Boller\u00eda'},
+  {n:'Galleta cookie',q:'21g',u:'g',pRef:21,pBase:4,c:'Boller\u00eda'},
+  {n:'Galleta digestive',q:'15g',u:'g',pRef:15,pBase:3,c:'Boller\u00eda'},
+  {n:'Galleta digestive chocolate',q:'16g',u:'g',pRef:16,pBase:3,c:'Boller\u00eda'},
+  {n:'Galleta digestive sin az\u00facar',q:'15g',u:'g',pRef:15,pBase:2,c:'Boller\u00eda'},
+  {n:'Galleta integral / mar\u00eda',q:'6g',u:'g',pRef:6,pBase:1,c:'Boller\u00eda'},
+  {n:'Galleta de mantequilla',q:'10g',u:'g',pRef:10,pBase:2,c:'Boller\u00eda'},
+  {n:'Galleta rellena de chocolate',q:'20g',u:'g',pRef:20,pBase:4,c:'Boller\u00eda'},
+  {n:'Galleta sin az\u00facar',q:'10g',u:'g',pRef:10,pBase:1,c:'Boller\u00eda'},
+  {n:'Gofre natural',q:'50g',u:'g',pRef:50,pBase:8,c:'Boller\u00eda'},
+  {n:'Magdalena cl\u00e1sica',q:'30g',u:'g',pRef:30,pBase:5,c:'Boller\u00eda'},
+  {n:'Magdalena valenciana',q:'30g',u:'g',pRef:30,pBase:5,c:'Boller\u00eda'},
+  {n:'Mantecado',q:'30g',u:'g',pRef:30,pBase:6,c:'Boller\u00eda'},
+  {n:'Muffin',q:'85g',u:'g',pRef:85,pBase:15,c:'Boller\u00eda'},
+  {n:'Napolitana de chocolate',q:'85g',u:'g',pRef:85,pBase:14,c:'Boller\u00eda'},
+  {n:'Napolitana de crema',q:'85g',u:'g',pRef:85,pBase:14,c:'Boller\u00eda'},
+  {n:'Palmera cl\u00e1sica',q:'12g',u:'g',pRef:12,pBase:3,c:'Boller\u00eda'},
+  {n:'Palmera grande',q:'80g',u:'g',pRef:80,pBase:19,c:'Boller\u00eda'},
+  {n:'Pan de leche',q:'35g',u:'g',pRef:35,pBase:5,c:'Boller\u00eda'},
+  {n:'Panettone',q:'50g',u:'g',pRef:50,pBase:8,c:'Boller\u00eda'},
+  {n:'Pastas de t\u00e9',q:'10g',u:'g',pRef:10,pBase:2,c:'Boller\u00eda'},
+  {n:'Plumcake',q:'50g',u:'g',pRef:50,pBase:8,c:'Boller\u00eda'},
+  {n:'Polvor\u00f3n',q:'30g',u:'g',pRef:30,pBase:7,c:'Boller\u00eda'},
+  {n:'Rosquilla',q:'30g',u:'g',pRef:30,pBase:4,c:'Boller\u00eda'},
+  {n:'Sobao',q:'25g',u:'g',pRef:25,pBase:4,c:'Boller\u00eda'},
+  {n:'Tarta de frutas / manzana',q:'1 cu\u00f1a peque\u00f1a',u:'ud',pRef:1,pBase:6,c:'Boller\u00eda'},
+  {n:'Tarta de queso',q:'1 cu\u00f1a peque\u00f1a',u:'ud',pRef:1,pBase:8,c:'Boller\u00eda'},
+  {n:'Tarta de la abuela',q:'1 cu\u00f1a peque\u00f1a',u:'ud',pRef:1,pBase:10,c:'Boller\u00eda'},
+  {n:'Tarta de chocolate',q:'1 cu\u00f1a peque\u00f1a',u:'ud',pRef:1,pBase:12,c:'Boller\u00eda'},
+  {n:'Torta de an\u00eds',q:'33g',u:'g',pRef:33,pBase:7,c:'Boller\u00eda'},
+  {n:'Turr\u00f3n crujiente',q:'25g',u:'g',pRef:25,pBase:7,c:'Boller\u00eda'},
+  {n:'Turr\u00f3n jijona',q:'25g',u:'g',pRef:25,pBase:5,c:'Boller\u00eda'},
+  {n:'Turr\u00f3n de chocolate',q:'25g',u:'g',pRef:25,pBase:6,c:'Boller\u00eda'},
+  {n:'Turr\u00f3n sin az\u00facar',q:'25g',u:'g',pRef:25,pBase:4,c:'Boller\u00eda'},
+  // CHOCOLATE Y GOLOSINAS
+  {n:'Bomb\u00f3n',q:'11g',u:'g',pRef:11,pBase:3,c:'Untables y dulces'},
+  {n:'Caramelo de fruta',q:'6g',u:'g',pRef:6,pBase:1,c:'Untables y dulces'},
+  {n:'Caramelo de goma',q:'8g',u:'g',pRef:8,pBase:1,c:'Untables y dulces'},
+  {n:'Caramelo sin az\u00facar',q:'11g',u:'g',pRef:11,pBase:1,c:'Untables y dulces'},
+  {n:'Chicle cl\u00e1sico',q:'4g',u:'g',pRef:4,pBase:1,c:'Untables y dulces'},
+  {n:'Chicle sin az\u00facar',q:'6g',u:'g',pRef:6,pBase:1,c:'Untables y dulces'},
+  {n:'Chocolate blanco',q:'25g',u:'g',pRef:25,pBase:7,c:'Untables y dulces'},
+  {n:'Chocolate con leche',q:'25g',u:'g',pRef:25,pBase:7,c:'Untables y dulces'},
+  {n:'Chocolate negro / postres',q:'25g',u:'g',pRef:25,pBase:7,c:'Untables y dulces'},
+  {n:'Chocolate 85% o superior',q:'25g',u:'g',pRef:25,pBase:6,c:'Untables y dulces'},
+  {n:'Chocolatinas',q:'40g',u:'g',pRef:40,pBase:10,c:'Untables y dulces'},
+  {n:'Mazap\u00e1n',q:'25g',u:'g',pRef:25,pBase:5,c:'Untables y dulces'},
+  {n:'Nubes',q:'5g',u:'g',pRef:5,pBase:1,c:'Untables y dulces'},
+  {n:'Regaliz',q:'1 ud',u:'ud',pRef:1,pBase:2,c:'Untables y dulces'},
+  {n:'Trufa de chocolate',q:'25g',u:'g',pRef:25,pBase:5,c:'Untables y dulces'},
+  // SUSHI Y ASIATICOS
+  {n:'Algas wakame',q:'80g',u:'g',pRef:80,pBase:3,c:'Comida asi\u00e1tica'},
+  {n:'Gyozas de langostinos',q:'80g',u:'g',pRef:80,pBase:3,c:'Comida asi\u00e1tica'},
+  {n:'Makis de salm\u00f3n',q:'120g',u:'g',pRef:120,pBase:6,c:'Comida asi\u00e1tica'},
+  {n:'Niguiris de langostinos',q:'95g',u:'g',pRef:95,pBase:3,c:'Comida asi\u00e1tica'},
+  {n:'Niguiris de salm\u00f3n',q:'95g',u:'g',pRef:95,pBase:3,c:'Comida asi\u00e1tica'},
+  {n:'Surtido sushi variado',q:'100g',u:'g',pRef:100,pBase:7,c:'Comida asi\u00e1tica'},
+  // COMER FUERA
+  {n:'Bacalao en salsa',q:'1 plato mediano',u:'ud',pRef:1,pBase:10,c:'Comer fuera'},
+  {n:'Bollo pre\u00f1ao peque\u00f1o',q:'1 ud',u:'ud',pRef:1,pBase:2,c:'Comer fuera'},
+  {n:'Cachopo jam\u00f3n y queso (medio)',q:'1 ud',u:'ud',pRef:1,pBase:20,c:'Comer fuera'},
+  {n:'Calamares fritos',q:'5-7 uds',u:'ud',pRef:1,pBase:8,c:'Comer fuera'},
+  {n:'Cordero al horno',q:'1 plato mediano',u:'ud',pRef:1,pBase:14,c:'Comer fuera'},
+  {n:'Croquetas',q:'1 ud',u:'ud',pRef:1,pBase:4,c:'Comer fuera'},
+  {n:'Ensaladilla rusa',q:'1 plato peque\u00f1o',u:'ud',pRef:1,pBase:10,c:'Comer fuera'},
+  {n:'Fritos de pescado',q:'6 uds',u:'ud',pRef:1,pBase:12,c:'Comer fuera'},
+  {n:'Hamburguesa burguer',q:'1 ud',u:'ud',pRef:1,pBase:18,c:'Comer fuera'},
+  {n:'Kebap',q:'1 ud',u:'ud',pRef:1,pBase:12,c:'Comer fuera'},
+  {n:'Lasa\u00f1a de carne',q:'1 plato mediano',u:'ud',pRef:1,pBase:15,c:'Comer fuera'},
+  {n:'Paella',q:'1 plato mediano',u:'ud',pRef:1,pBase:12,c:'Comer fuera'},
+  {n:'Pasta carbonara',q:'1 plato mediano',u:'ud',pRef:1,pBase:18,c:'Comer fuera'},
+  {n:'Patatas bravas / cabrales',q:'1 plato peque\u00f1o',u:'ud',pRef:1,pBase:13,c:'Comer fuera'},
+  {n:'Patatas fritas restaurante',q:'1 plato peque\u00f1o',u:'ud',pRef:1,pBase:12,c:'Comer fuera'},
+  {n:'Pincho pollo empanado',q:'1 mediano',u:'ud',pRef:1,pBase:12,c:'Comer fuera'},
+  {n:'Pincho pollo plancha',q:'1 mediano',u:'ud',pRef:1,pBase:7,c:'Comer fuera'},
+  {n:'Pizza 4 quesos entera fina',q:'1 entera',u:'ud',pRef:1,pBase:39,c:'Comer fuera'},
+  {n:'Pollo al horno',q:'1 muslo',u:'ud',pRef:1,pBase:10,c:'Comer fuera'},
+  {n:'Risotto de setas',q:'1 plato mediano',u:'ud',pRef:1,pBase:13,c:'Comer fuera'},
+  {n:'Tortilla de patatas',q:'1 cu\u00f1a',u:'ud',pRef:1,pBase:11,c:'Comer fuera'},
+  // SOPAS Y CALDOS
+  {n:'Caldo de carne',q:'500ml',u:'ml',pRef:500,pBase:1,c:'Sopas y caldos'},
+  {n:'Caldo de cocido',q:'750ml',u:'ml',pRef:750,pBase:1,c:'Sopas y caldos'},
+  {n:'Caldo de pescado',q:'500ml',u:'ml',pRef:500,pBase:1,c:'Sopas y caldos'},
+  {n:'Caldo de pollo',q:'500ml',u:'ml',pRef:500,pBase:1,c:'Sopas y caldos'},
+  {n:'Caldo vegetal sin aceite',q:'',u:'',pRef:0,pBase:0,c:'Sopas y caldos'},
+  {n:'Sopa con pasta',q:'250ml',u:'ml',pRef:250,pBase:2,c:'Sopas y caldos'},
+  // REALFOODING
+  {n:'Base de pizza realfooding',q:'140g',u:'g',pRef:140,pBase:13,c:'Realfooding'},
+  {n:'Crema de cacao realfooding',q:'20g',u:'g',pRef:20,pBase:1,c:'Realfooding'},
+  {n:'Crema de queso natural',q:'5g',u:'g',pRef:5,pBase:1,c:'Realfooding'},
+  {n:'Croissant realfooding',q:'1 ud',u:'ud',pRef:1,pBase:12,c:'Realfooding'},
+  {n:'Galletas realfooding',q:'60g',u:'g',pRef:60,pBase:6,c:'Realfooding'},
+  {n:'Gazpacho realfooding',q:'100g',u:'g',pRef:100,pBase:2,c:'Realfooding'},
+  {n:'Guacamole realfooding',q:'50g',u:'g',pRef:50,pBase:2,c:'Realfooding'},
+  {n:'Hummus realfooding',q:'50g',u:'g',pRef:50,pBase:5,c:'Realfooding'},
+  {n:'Pan 100% integral realfooding',q:'60g',u:'g',pRef:60,pBase:4,c:'Realfooding'},
+  {n:'Salmorejo realfooding',q:'100g',u:'g',pRef:100,pBase:6,c:'Realfooding'},
+];
+
+// ===== ESTADO =====
+let weekOffset = 0;
+let selectedDay = new Date();
+let activeCat = 'Todos';
+let selectedFood = null;
+let targetComidaIdx = 0;
+let diary = JSON.parse(localStorage.getItem('mqd_diary') || '{}');
+let config = JSON.parse(localStorage.getItem('mqd_config') || '{"nombre":"","tel":"","pts":30,"cita":""}');
+
+// ===== UTILS =====
+function getWeekDates(offset) {
+  const now = new Date();
+  const d = now.getDay();
+  const diff = d === 0 ? -6 : 1 - d;
+  const mon = new Date(now);
+  mon.setDate(now.getDate() + diff + offset * 7);
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const x = new Date(mon);
+    x.setDate(mon.getDate() + i);
+    dates.push(x);
+  }
+  return dates;
+}
+
+function dateKey(d) {
+  return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+}
+
+function isToday(d) {
+  const t = new Date();
+  return d.toDateString() === t.toDateString();
+}
+
+function fmtShort(d) {
+  return d.getDate() + '/' + (d.getMonth()+1);
+}
+
+function getDayData(d) {
+  const k = dateKey(d);
+  if (!diary[k]) diary[k] = {comidas:[[],[],[],[]],notas:''};
+  return diary[k];
+}
+
+function saveDiary() {
+  localStorage.setItem('mqd_diary', JSON.stringify(diary));
+  // Guardar también en GAS (async, no bloquea la UI)
+  guardarDiaEnGAS(selectedDay);
+}
+
+function saveConfig() {
+  config.nombre = document.getElementById('cfg-nombre').value;
+  config.tel = document.getElementById('cfg-tel').value;
+  config.pts = parseInt(document.getElementById('cfg-pts').value) || 30;
+  config.cita = document.getElementById('cfg-cita').value;
+  localStorage.setItem('mqd_config', JSON.stringify(config));
+  document.getElementById('header-pts-badge').textContent = config.pts + ' pts/d\u00eda';
+}
+
+function saveNotas() {
+  const k = dateKey(selectedDay);
+  if (!diary[k]) diary[k] = {comidas:[[],[],[],[]],notas:''};
+  diary[k].notas = document.getElementById('notas-dia').value;
+  saveDiary();
+}
+
+function getDayPts(d) {
+  const data = getDayData(d);
+  let t = 0;
+  data.comidas.forEach(c => c.forEach(item => t += item.pts));
+  return t;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ===== TABS =====
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'semana') renderSemana();
+  if (id === 'guia') filterGuia();
+  if (id === 'config') loadConfig();
+}
+
+// ===== WEEK NAV =====
+function changeWeek(dir) {
+  weekOffset += dir;
+  var dates = getWeekDates(weekOffset);
+  if (weekOffset === 0) {
+    selectedDay = new Date();
+  } else {
+    selectedDay = dates[0];
+  }
+  cargarDiarioDesdeGAS(weekOffset);
+  renderSemana();
+}
+
+function renderWeekPills() {
+  const dates = getWeekDates(weekOffset);
+  const label = fmtShort(dates[0]) + ' \u2013 ' + fmtShort(dates[6]);
+  document.getElementById('week-label-diario').textContent = label;
+  document.getElementById('week-label-semana').textContent = label;
+
+  const container = document.getElementById('week-days-pills');
+  container.innerHTML = '';
+  dates.forEach(d => {
+    const isActive = d.toDateString() === selectedDay.toDateString();
+    const pts = getDayPts(d);
+    const hasData = pts > 0;
+    const pill = document.createElement('div');
+    pill.className = 'day-pill' + (isActive ? ' active' : '') + (hasData && !isActive ? ' has-data' : '');
+    pill.innerHTML = '<span class="day-pill-name">' + DIAS_SHORT[d.getDay()] + '</span>' +
+      '<span class="day-pill-num">' + d.getDate() + '</span>' +
+      '<span class="day-pill-pts">' + (pts > 0 ? pts + 'p' : '\u00b7') + '</span>';
+    pill.onclick = () => { selectedDay = d; renderWeekPills(); renderComidas(); };
+    container.appendChild(pill);
+  });
+}
+
+// ===== COMIDAS =====
+function renderComidas() {
+  const data = getDayData(selectedDay);
+  const container = document.getElementById('comidas-container');
+  container.innerHTML = '';
+
+  COMIDAS_DEF.forEach((c, ci) => {
+    const items = data.comidas[ci] || [];
+    const total = items.reduce((s, it) => s + it.pts, 0);
+    const block = document.createElement('div');
+    block.className = 'comida-block';
+
+    const isOpen = total > 0 || ci === 0;
+    block.innerHTML = '<div class="comida-header ' + (isOpen ? 'open' : '') + '" onclick="toggleComida(this,' + ci + ')">' +
+      '<div class="comida-header-left"><span class="comida-emoji">' + c.emoji + '</span>' +
+      '<span class="comida-name">' + c.name + '</span></div>' +
+      '<span class="comida-pts-badge">' + total + ' pts</span>' +
+      '</div>' +
+      '<div class="comida-body ' + (isOpen ? 'open' : '') + '">' +
+      '<div class="items-list" id="items-' + ci + '">' +
+      (items.length === 0 ? '<div class="comida-empty">Sin alimentos a\u00f1adidos</div>' : '') +
+      items.map((it, ii) => '<div class="item-row">' +
+        '<span class="item-name">' + it.name + '</span>' +
+        '<span class="item-qty">' + it.qty + it.unit + '</span>' +
+        '<span class="item-pts">' + it.pts + 'p</span>' +
+        '<button class="item-del" onclick="deleteItem(' + ci + ',' + ii + ')">\u00d7</button>' +
+        '</div>').join('') +
+      '</div>' +
+      '<div class="comida-total-bar"><span>Total ' + c.name + '</span><strong>' + total + ' pts</strong></div>' +
+      '<button class="add-food-btn" onclick="openGuiaForComida(' + ci + ')">+ A\u00f1adir alimento</button>' +
+      '</div>';
+
+    container.appendChild(block);
+  });
+
+  updatePtsBanner();
+  document.getElementById('notas-dia').value = data.notas || '';
+}
+
+function toggleComida(header, ci) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function deleteItem(ci, ii) {
+  const data = getDayData(selectedDay);
+  data.comidas[ci].splice(ii, 1);
+  saveDiary();
+  renderComidas();
+  renderWeekPills();
+  showToast('Alimento eliminado');
+}
+
+function openGuiaForComida(ci) {
+  targetComidaIdx = ci;
+  document.getElementById('modal-comida-dest').value = ci;
+  switchTab('guia', document.querySelectorAll('.tab')[2]);
+}
+
+function updatePtsBanner() {
+  const total = getDayPts(selectedDay);
+  const max = config.pts || 30;
+  document.getElementById('pts-today').innerHTML = total + ' <span style="font-size:14px;font-weight:400;color:rgba(255,255,255,0.5)">/ <span id="pts-max-banner">' + max + '</span></span>';
+  const left = max - total;
+  document.getElementById('pts-left-label').textContent = left >= 0 ? 'Quedan ' + left + ' pts disponibles' : (Math.abs(left)) + ' pts por encima del l\u00edmite';
+  const pct = Math.min(total / max, 1);
+  const circ = 163.4;
+  document.getElementById('ring-progress').setAttribute('stroke-dashoffset', circ - pct * circ);
+  document.getElementById('ring-pct').innerHTML = Math.round(pct * 100) + '%<small>hoy</small>';
+}
+
+// ===== SEMANA =====
+function renderSemana() {
+  const dates = getWeekDates(weekOffset);
+  const max = config.pts || 30;
+  const grid = document.getElementById('resumen-grid');
+  grid.innerHTML = '';
+  let totalSem = 0;
+  let diasOk = 0;
+  let diasConData = 0;
+
+  dates.forEach(d => {
+    const pts = getDayPts(d);
+    if (pts > 0) { totalSem += pts; diasConData++; }
+    if (pts > 0 && pts <= max) diasOk++;
+    const pct = Math.min(pts / max, 1);
+    const el = document.createElement('div');
+    el.className = 'res-day' + (isToday(d) ? ' today' : '');
+    el.innerHTML = '<span class="res-day-name">' + DIAS_SHORT[d.getDay()] + '</span>' +
+      '<span class="res-day-pts">' + (pts || '\u2013') + '</span>' +
+      (pts > 0 ? '<div class="res-day-bar' + (pts > max ? ' over' : '') + '" style="width:' + Math.round(pct * 24) + 'px"></div>' : '<div style="height:3px"></div>');
+    el.onclick = () => { selectedDay = d; renderWeekPills(); renderComidas(); switchTab('diario', document.querySelectorAll('.tab')[0]); };
+    grid.appendChild(el);
+  });
+
+  document.getElementById('stat-total').textContent = totalSem;
+  document.getElementById('stat-media').textContent = diasConData > 0 ? Math.round(totalSem / diasConData) : 0;
+  document.getElementById('stat-dias').textContent = diasOk + '/7';
+
+  // Detalle
+  const det = document.getElementById('semana-detalle');
+  det.innerHTML = '<div class="card-title"> Detalle por día</div>';
+  dates.forEach(d => {
+    const data = getDayData(d);
+    const pts = getDayPts(d);
+    if (pts === 0 && !data.notas) return;
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:10px 0;border-bottom:1px solid #f5eef8;cursor:pointer';
+    row.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center">' +
+      '<strong style="font-size:14px">' + DIAS_SHORT[d.getDay()] + ' ' + fmtShort(d) + '</strong>' +
+      '<span style="color:#E91E7A;font-weight:600">' + pts + ' / ' + max + ' pts</span></div>' +
+      (data.notas ? '<div style="font-size:12px;color:#888;margin-top:4px">' + data.notas + '</div>' : '');
+    row.onclick = () => { selectedDay = d; renderWeekPills(); renderComidas(); switchTab('diario', document.querySelectorAll('.tab')[0]); };
+    det.appendChild(row);
+  });
+}
+
+// ===== GUIA =====
+const CATS = ['Todos', ...new Set(ALIMENTOS.map(a => a.c))];
+
+function renderCatFilter() {
+  const el = document.getElementById('cat-scroll');
+  el.innerHTML = '';
+  CATS.forEach(c => {
+    const chip = document.createElement('div');
+    chip.className = 'cat-chip' + (c === activeCat ? ' active' : '');
+    chip.textContent = c;
+    chip.onclick = () => { activeCat = c; renderCatFilter(); filterGuia(); };
+    el.appendChild(chip);
+  });
+}
+
+function filterGuia() {
+  const q = (document.getElementById('guia-search').value || '').toLowerCase().trim();
+  const results = ALIMENTOS.filter(a => {
+    const matchCat = activeCat === 'Todos' || a.c === activeCat;
+    const matchQ = !q || a.n.toLowerCase().includes(q) || a.c.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  document.getElementById('guia-results-info').textContent = results.length + ' alimentos';
+  const list = document.getElementById('food-list');
+  list.innerHTML = '';
+  results.forEach((f, fi) => {
+    const idx = ALIMENTOS.indexOf(f);
+    const card = document.createElement('div');
+    card.className = 'food-card';
+    card.innerHTML = '<div class="food-info">' +
+      '<div class="food-name">' + f.n + '</div>' +
+      '<div class="food-qty-ref">' + (f.q || 'libre') + '</div>' +
+      '<div class="food-cat-tag">' + f.c + '</div>' +
+      '</div>' +
+      '<div style="text-align:right">' +
+      '<div class="food-pts-big">' + f.pBase + '</div>' +
+      '<div class="food-pts-label">pts</div>' +
+      '</div>';
+    card.onclick = () => openModal(idx);
+    list.appendChild(card);
+  });
+}
+
+// ===== MODAL =====
+function openModal(idx) {
+  selectedFood = ALIMENTOS[idx];
+  document.getElementById('modal-food-name').textContent = selectedFood.n;
+  document.getElementById('modal-food-ref').textContent = 'Ref: ' + (selectedFood.q || 'libre') + ' = ' + selectedFood.pBase + ' pts';
+  const qtyEl = document.getElementById('modal-qty');
+
+  if (selectedFood.u === 'ud' || selectedFood.u === 'cta' || selectedFood.u === 'cda' || selectedFood.pRef === 0) {
+    qtyEl.value = 1;
+    qtyEl.min = 1;
+    qtyEl.step = 1;
+  } else {
+    qtyEl.value = selectedFood.pRef;
+    qtyEl.min = 5;
+    qtyEl.step = 5;
+  }
+  document.getElementById('modal-unit').textContent = selectedFood.u || '';
+  document.getElementById('modal-comida-dest').value = targetComidaIdx;
+  recalcModal();
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  selectedFood = null;
+}
+
+function recalcModal() {
+  if (!selectedFood) return;
+  const qty = parseFloat(document.getElementById('modal-qty').value) || 0;
+  let pts;
+  if (selectedFood.pRef === 0 || selectedFood.pBase === 0) {
+    pts = 0;
+  } else {
+    pts = Math.round((qty / selectedFood.pRef) * selectedFood.pBase);
+  }
+  document.getElementById('modal-pts-calc').textContent = pts;
+}
+
+function changeQty(delta) {
+  const inp = document.getElementById('modal-qty');
+  const step = (selectedFood && (selectedFood.u === 'g' || selectedFood.u === 'ml')) ? 10 : 1;
+  inp.value = Math.max(parseInt(inp.min) || 1, (parseInt(inp.value) || 0) + (delta > 0 ? step : -step));
+  recalcModal();
+}
+
+function confirmAdd() {
+  if (!selectedFood) return;
+  const qty = parseFloat(document.getElementById('modal-qty').value) || 0;
+  const ci = parseInt(document.getElementById('modal-comida-dest').value);
+  let pts;
+  if (selectedFood.pRef === 0 || selectedFood.pBase === 0) {
+    pts = 0;
+  } else {
+    pts = Math.round((qty / selectedFood.pRef) * selectedFood.pBase);
+  }
+
+  const data = getDayData(selectedDay);
+  data.comidas[ci].push({
+    name: selectedFood.n,
+    qty: qty,
+    unit: selectedFood.u || '',
+    pts: pts
+  });
+  saveDiary();
+  closeModal();
+  renderComidas();
+  renderWeekPills();
+  showToast(selectedFood.n + ' a\u00f1adido (' + pts + ' pts)');
+
+  switchTab('diario', document.querySelectorAll('.tab')[0]);
+}
+
+// ===== CONFIG =====
+function loadConfig() {
+  // En Fase 2 estos datos vendrán del Sheet via API
+  // Por ahora se muestran desde localStorage
+  const elNombre = document.getElementById('id-nombre');
+  const elTel = document.getElementById('id-tel');
+  const elPts = document.getElementById('id-pts');
+  const elCita = document.getElementById('id-cita');
+  const elPtsTotal = document.getElementById('id-pts-total');
+  const elPtsExtra = document.getElementById('pts-extra-val');
+  if(elNombre) elNombre.textContent = config.nombre || 'No configurado';
+  if(elTel) elTel.textContent = config.tel || 'No configurado';
+  if(elPts) elPts.textContent = (config.pts || 30) + ' pts';
+  if(elCita) elCita.textContent = config.cita || 'Sin cita asignada';
+  if(elPtsExtra) elPtsExtra.textContent = config.ptsExtra || 0;
+  updatePtsTotalDisplay();
+}
+
+function updatePtsTotalDisplay() {
+  const base = config.pts || 30;
+  const extra = config.ptsExtra || 0;
+  const total = base + extra;
+  const el = document.getElementById('id-pts-total');
+  if(el) el.textContent = total + ' pts';
+  // Actualizar el badge del topbar con el total real
+  const badge = document.getElementById('header-pts-badge');
+  if(badge) badge.textContent = total + ' pts/d\u00eda';
+}
+
+function changePtsExtra(delta) {
+  config.ptsExtra = Math.max(0, (config.ptsExtra || 0) + delta);
+  localStorage.setItem('mqd_config', JSON.stringify(config));
+  const el = document.getElementById('pts-extra-val');
+  if(el) el.textContent = config.ptsExtra;
+  updatePtsTotalDisplay();
+  updatePtsBanner();
+}
+
+function updatePtsBanner() {
+  document.getElementById('header-pts-badge').textContent = (config.pts || 30) + ' pts/d\u00eda';
+  const total = getDayPts(selectedDay);
+  const max = config.pts || 30;
+  const left = max - total;
+  document.getElementById('pts-left-label').textContent = left >= 0 ? 'Quedan ' + left + ' pts disponibles' : Math.abs(left) + ' pts por encima del l\u00edmite';
+  const pct = Math.min(total / max, 1);
+  const circ = 163.4;
+  document.getElementById('ring-progress').setAttribute('stroke-dashoffset', circ - pct * circ);
+  document.getElementById('pts-today').innerHTML = total + ' <span style="font-size:14px;font-weight:400;color:rgba(255,255,255,0.5)">/ ' + max + '</span>';
+  document.getElementById('ring-pct').innerHTML = Math.round(pct * 100) + '%<small>hoy</small>';
+}
+
+function clearAllData() {
+  if (confirm('\u00bfBorrar todos los datos del diario? Esta acci\u00f3n no se puede deshacer.')) {
+    localStorage.removeItem('mqd_diary');
+    diary = {};
+    renderWeekPills();
+    renderComidas();
+    showToast('Datos eliminados');
+  }
+}
+
+
+// ===== AGENTE IA =====
+const RECETAS_MQD = [
+  {nombre:'Espaguetis con salsa bolo\u00f1esa',pts:11,desc:'70g pasta + salsa de carne picada magra, tomate, parmesano. Acompa\u00f1ar con verdura.'},
+  {nombre:'Revuelto de guisantes',pts:8,desc:'Guisantes en conserva, champi\u00f1ones, 1 huevo, queso fresco 0% MG. Con aceite y ajo.'},
+  {nombre:'Bacalao con patatas',pts:9,desc:'200g bacalao fresco + 300g patatas guisadas con tomate, cebolla, pimiento y especias.'},
+  {nombre:'Filete de pavo con salsa de setas',pts:8,desc:'200g pavo + champi\u00f1ones, caldo, yogur cremoso. Acompa\u00f1ar con 30g cusc\u00fas.'},
+  {nombre:'Garbanzos con espinacas',pts:10,desc:'150g garbanzos + espinacas + 1 huevo duro + patata. Con aceite de oliva.'},
+  {nombre:'Ternera con vinagreta de miel',pts:9,desc:'200g ternera a la plancha + ensalada con naranja, uva, vinagreta de miel y lim\u00f3n. Con 50g pan.'},
+  {nombre:'Mero con salsa de mejillones',pts:10,desc:'140g mero cocinado en salsa de mejillones, tomate y vino blanco. Con 60g pan.'},
+  {nombre:'Pavo a la parrilla con patatas',pts:7,desc:'150g pavo + 180g patatas salteadas en microondas con tomate, cebolla y hierbas.'},
+  {nombre:'Ensalada de lentejas con salm\u00f3n',pts:11,desc:'240g lentejas + 50g salm\u00f3n ahumado + ma\u00edz + tomate + vinagreta de lim\u00f3n.'},
+  {nombre:'Pollo con manzana',pts:9,desc:'150g pechuga de pollo + manzana en gajos con naranja y canela. Con 250g patatas.'},
+  {nombre:'Arroz con sepia y gambas',pts:10,desc:'80g arroz + sepia + gambas + alcachofa + caldo de pescado. Todo en una olla.'},
+  {nombre:'Bocadillo de tortilla de calabac\u00edn',pts:10,desc:'Tortilla de calabac\u00edn con quesito light y ajo. En 70g pan integral 5 cereales.'},
+  {nombre:'Cerdo con verduritas y patatas',pts:11,desc:'180g cerdo magro marinado en brocheta + 175g patata al microondas.'},
+  {nombre:'Arroz 3 delicias',pts:10,desc:'150g arroz blanco + guisantes + jam\u00f3n cocido + huevo + zanahoria + salsa de soja.'},
+];
+
+let chatHistory = [];
+let chatLoading = false;
+
+function buildSystemPrompt() {
+  const max = config.pts || 30;
+  const todayPts = getDayPts(selectedDay);
+  const leftPts = max - todayPts;
+  const dates = getWeekDates(weekOffset);
+
+  let weekSummary = '';
+  dates.forEach(d => {
+    const pts = getDayPts(d);
+    const data = getDayData(d);
+    const dia = ['Dom','Lun','Mar','Mi\u00e9','Jue','Vie','S\u00e1b'][d.getDay()];
+    const fecha = d.getDate() + '/' + (d.getMonth()+1);
+    let comidas = '';
+    COMIDAS_DEF.forEach((c,ci) => {
+      const items = (data.comidas[ci] || []);
+      if (items.length) {
+        comidas += c.name + ': ' + items.map(i => i.name + '(' + i.pts + 'p)').join(', ') + '. ';
+      }
+    });
+    weekSummary += dia + ' ' + fecha + ' \u2014 ' + pts + '/' + max + ' pts. ' + (comidas || 'Sin datos.') + (data.notas ? ' Nota: ' + data.notas : '') + '\n';
+  });
+
+  const recetasInfo = RECETAS_MQD.map(r => r.nombre + ' (' + r.pts + 'p): ' + r.desc).join('\n');
+  const nombre = config.nombre || 'la clienta';
+
+  return `Eres una asistente nutricionista del m\u00e9todo M\u00e1sQdieta, c\u00e1lida, cercana y motivadora. Hablas como una amiga que sabe mucho de nutrici\u00f3n \u2014 con empat\u00eda, \u00e1nimo y claridad. Nunca juzgas. Siempre das opciones concretas y f\u00e1ciles.
+
+DATOS DE HOY:
+- Clienta: ${nombre}
+- Puntos asignados por d\u00eda: ${max} pts
+- Puntos consumidos hoy: ${todayPts} pts
+- Puntos disponibles hoy: ${leftPts} pts
+- Hora actual: ${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2,'0')}h
+
+HISTORIAL DE LA SEMANA:
+${weekSummary}
+
+RECETAS OFICIALES M\u00c1SQDIETA (usa estas cuando puedas):
+${recetasInfo}
+
+INSTRUCCIONES:
+- Cuando sugieras comidas, indica SIEMPRE los puntos que gastar\u00eda.
+- Si quedan pocos puntos, sugiere opciones ligeras y 0 puntos (verduras, prote\u00edna magra, caldo).
+- Si quedan puntos suficientes, puedes proponer recetas completas.
+- Menciona recetas M\u00e1sQdieta cuando encajen con los puntos disponibles.
+- S\u00e9 breve y directa. Sin rodeos. M\u00e1ximo 3-4 opciones cuando sugieras ideas.
+- Usa emojis con moderaci\u00f3n para hacer el texto m\u00e1s amigable.
+- Si te preguntan por algo que no tiene que ver con nutrici\u00f3n o el diario, redir\u00edgela amablemente.`;
+}
+
+function updateContextBar() {
+  const max = config.pts || 30;
+  const todayPts = getDayPts(selectedDay);
+  const leftPts = max - todayPts;
+  const bar = document.getElementById('chat-ctx-bar');
+  if (bar) {
+    bar.textContent = '\u2728 Hoy: ' + todayPts + '/' + max + ' pts consumidos \u00b7 Disponibles: ' + leftPts + ' pts';
+  }
+}
+
+function initChat() {
+  updateContextBar();
+}
+
+function addMessage(role, text) {
+  const empty = document.getElementById('chat-empty');
+  if (empty) empty.remove();
+
+  const sugs = document.getElementById('chat-suggestions');
+  if (sugs) sugs.style.display = 'none';
+
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + (role === 'user' ? 'user' : 'ai');
+  div.innerHTML = text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg-typing';
+  div.id = 'typing-indicator';
+  div.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = (input.value || '').trim();
+  if (!text || chatLoading) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  chatLoading = true;
+  document.getElementById('chat-send-btn').disabled = true;
+
+  addMessage('user', text);
+  chatHistory.push({role:'user', content: text});
+
+  showTyping();
+
+  try {
+    const systemPrompt = buildSystemPrompt();
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: chatHistory
+      })
+    });
+
+    const data = await response.json();
+    hideTyping();
+
+    if (data.content && data.content[0] && data.content[0].text) {
+      const reply = data.content[0].text;
+      addMessage('ai', reply);
+      chatHistory.push({role:'assistant', content: reply});
+    } else {
+      addMessage('ai', 'Lo siento, ha habido un problema. Prueba de nuevo en un momento 🙏');
+    }
+  } catch(e) {
+    hideTyping();
+    addMessage('ai', 'Ups, no he podido conectar. Comprueba tu conexion e intentalo de nuevo 🌐');
+  }
+
+  chatLoading = false;
+  document.getElementById('chat-send-btn').disabled = false;
+}
+
+function sendSuggestion(el) {
+  const text = el.textContent;
+  document.getElementById('chat-input').value = text;
+  sendChat();
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+
+function loadPerfilFromURL() {
+  var params = new URLSearchParams(window.location.search);
+  if(params.get('nombre')) config.nombre = params.get('nombre');
+  if(params.get('tel')) config.tel = params.get('tel');
+  if(params.get('pts')) config.pts = parseInt(params.get('pts')) || 30;
+  if(params.get('cita')) config.cita = decodeURIComponent(params.get('cita') || '');
+  if(Object.keys(Object.fromEntries(params)).length > 0) {
+    localStorage.setItem('mqd_config', JSON.stringify(config));
+  }
+}
+
+// ===== INIT =====
+// En modo GAS, initAuth() gestiona login y carga de datos
+// En modo local (sin GAS_URL), carga directamente
+initAuth();
+if (gasModoLocal) {
+  loadPerfilFromURL();
+}
+document.getElementById('header-pts-badge').textContent = (config.pts || 30) + ' pts/d\u00eda';
+renderWeekPills();
+renderComidas();
+renderCatFilter();
+filterGuia();
+loadConfig();
+
+// Cerrar modal al tocar fuera
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
